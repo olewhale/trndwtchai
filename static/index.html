@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instagram Reels Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        #response {
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        async function sendReels() {
+            const urlsText = document.getElementById('urls').value.trim();
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = '<p>Processing...</p>';
+
+            // Отправляем данные как строку
+            const payload = { urls: urlsText };
+
+            try {
+                const response = await fetch('/sendreels', {
+                    method: 'PUT', // или PUT, если нужно
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload) // Преобразуем в JSON
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    responseDiv.innerHTML = '<h2>Response:</h2><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    const errorText = await response.text();
+                    responseDiv.innerHTML = '<p>Error: ' + response.status + ' ' + response.statusText + '</p><pre>' + errorText + '</pre>';
+                }
+            } catch (error) {
+                responseDiv.innerHTML = '<p>Error: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Send Instagram Reel URL(s)</h1>
+    <button onclick="sendReels()">Send Reel URL(s)</button>
+    <p>Enter the Instagram Reel URL(s) separated by commas:</p>
+    <textarea id="urls" placeholder="https://www.instagram.com/reel/xyz123, https://www.instagram.com/reel/abc456"></textarea><br><br>
+    <div id="response"></div>
+</body>
+</html>

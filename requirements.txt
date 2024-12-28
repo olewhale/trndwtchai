@@ -1,0 +1,16 @@
+uvicorn
+fastapi
+pydantic
+faster-whisper
+requests
+apify-client
+scenedetect
+tqdm
+gspread
+oauth2client
+openai
+pytz
+python-dotenv
+Appium-Python-Client
+selenium
+#pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
