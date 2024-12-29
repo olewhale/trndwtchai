@@ -19,113 +19,7 @@ lnks = [
     "https://www.instagram.com/p/DD7GSTHMTDi/",
     "https://www.instagram.com/p/DD6zyslvPlZ/",
     "https://www.instagram.com/p/DD6zYLqOaPe/",
-    "https://www.instagram.com/p/DD56_QbvOrt/",
-    "https://www.instagram.com/p/DD5GbdwOW3m/",
-    "https://www.instagram.com/p/DD4hGJdCgCu/",
-    "https://www.instagram.com/p/DD4s-ZCTuI6/",
-    "https://www.instagram.com/p/DD4hDsgOSpO/",
-    "https://www.instagram.com/p/DD4P8bfCdxl/",
-    "https://www.instagram.com/p/DD4P66giXdP/",
-    "https://www.instagram.com/p/DD3VRwuM1b0/",
-    "https://www.instagram.com/p/DD3PmFsTcEM/",
-    "https://www.instagram.com/p/DD2ycF6OcFv/",
-    "https://www.instagram.com/p/DD2wa5BB4qR/",
-    "https://www.instagram.com/p/DD2f9a1yqJn/",
-    "https://www.instagram.com/p/DD2XmR7OER5/",
-    "https://www.instagram.com/p/DD2L3SxM0nq/",
-    "https://www.instagram.com/p/DD19JOSMyvt/",
-    "https://www.instagram.com/p/DD1wIM-PQj8/",
-    "https://www.instagram.com/p/DD1rj1QO0iq/",
-    "https://www.instagram.com/p/DD1oymGioTI/",
-    "https://www.instagram.com/p/DD0mrdNzi5L/",
-    "https://www.instagram.com/p/DDz52zgif6r/",
-    "https://www.instagram.com/p/DDzot5dCywF/",
-    "https://www.instagram.com/p/DDzXgkLid2S/",
-    "https://www.instagram.com/p/DDzWXeMuo_c/",
-    "https://www.instagram.com/p/DDzGYEainnR/",
-    "https://www.instagram.com/p/DDyRNf3T4YK/",
-    "https://www.instagram.com/p/DDx4lVrs0MW/",
-    "https://www.instagram.com/p/DDxt3_GyKJv/",
-    "https://www.instagram.com/p/DDxYX6TShzy/",
-    "https://www.instagram.com/p/DDxRjrosnah/",
-    "https://www.instagram.com/p/DDxD2qCCfW2/",
-    "https://www.instagram.com/p/DDxAarwCRur/",
-    "https://www.instagram.com/p/DDwyto_C2qO/",
-    "https://www.instagram.com/p/DDwhXjXik9C/",
-    "https://www.instagram.com/p/DDwXYJ_pL0Q/",
-    "https://www.instagram.com/p/DDwI3ZBiNIp/",
-    "https://www.instagram.com/p/DDvVS0oy-F7/",
-    "https://www.instagram.com/p/DDurE5RxY4n/",
-    "https://www.instagram.com/p/DDugaiYz5AP/",
-    "https://www.instagram.com/p/DDuN6rWiRYr/",
-    "https://www.instagram.com/p/DDuUxI4iWYr/",
-    "https://www.instagram.com/p/DDuOw4zOizY/",
-    "https://www.instagram.com/p/DDt8vypCW9c/",
-    "https://www.instagram.com/p/DDuBOLVCwMb/",
-    "https://www.instagram.com/p/DDt8xJ6CfRd/",
-    "https://www.instagram.com/p/DDtv_PkOYrY/",
-    "https://www.instagram.com/p/DDssoIXylyT/",
-    "https://www.instagram.com/p/DDsjuWqBfz9/",
-    "https://www.instagram.com/p/DDsgssAxpzH/",
-    "https://www.instagram.com/p/DDsGOe9RxAZ/",
-    "https://www.instagram.com/p/DDsFXe2pxM-/",
-    "https://www.instagram.com/p/DDr7rnHO0ar/",
-    "https://www.instagram.com/p/DDrxDLoTXI6/",
-    "https://www.instagram.com/p/DDrrtjPi6gB/",
-    "https://www.instagram.com/p/DDroehcu_oK/",
-    "https://www.instagram.com/p/DDqKUnUM45j/",
-    "https://www.instagram.com/p/DDqDqZgy2H6/",
-    "https://www.instagram.com/p/DDpx9Y4SnBY/",
-    "https://www.instagram.com/p/DDpRMRGN20P/",
-    "https://www.instagram.com/p/DDpMR2xzTRt/",
-    "https://www.instagram.com/p/DDpDYbIpsr8/",
-    "https://www.instagram.com/p/DDn_Me2vi9q/",
-    "https://www.instagram.com/p/DDnqWrVOsj6/",
-    "https://www.instagram.com/p/DDnUwhXN_RS/",
-    "https://www.instagram.com/p/DDmqeW1NwNN/",
-    "https://www.instagram.com/p/DDmVoGrvWuu/",
-    "https://www.instagram.com/p/DDmOwo5iV5f/",
-    "https://www.instagram.com/p/DDlI1znz56l/",
-    "https://www.instagram.com/p/DDkQJLmuPOv/",
-    "https://www.instagram.com/p/DDkFab2TBO-/",
-    "https://www.instagram.com/p/DDjruEeuVdN/",
-    "https://www.instagram.com/p/DDjpdoGiVK7/",
-    "https://www.instagram.com/p/DDiKtzcpL-a/",
-    "https://www.instagram.com/p/DDiF_5YTNlA/",
-    "https://www.instagram.com/p/DDh5XAARa66/",
-    "https://www.instagram.com/p/DDhycqfx9ec/",
-    "https://www.instagram.com/p/DDhpxUpzjhZ/",
-    "https://www.instagram.com/p/DDhfJ6XPbB2/",
-    "https://www.instagram.com/p/DDhFWnfT4cU/",
-    "https://www.instagram.com/p/DDg0OQmCxKk/",
-    "https://www.instagram.com/p/DDgRXlUxI1w/",
-    "https://www.instagram.com/p/DDf90mls8dH/",
-    "https://www.instagram.com/p/DDf4KfpPcnu/",
-    "https://www.instagram.com/p/DDfpnMhtJyO/",
-    "https://www.instagram.com/p/DDfDJtYvstL/",
-    "https://www.instagram.com/p/DDe6zpBT3th/",
-    "https://www.instagram.com/p/DDewwEvuz89/",
-    "https://www.instagram.com/p/DDeZWmvO6RV/",
-    "https://www.instagram.com/p/DDeIim9CsvK/",
-    "https://www.instagram.com/p/DDdQ3zrt8gf/",
-    "https://www.instagram.com/p/DDdPfOxSG3y/",
-    "https://www.instagram.com/p/DDdBMmJtejR/",
-    "https://www.instagram.com/p/DDcYSPszlXl/",
-    "https://www.instagram.com/p/DDcIQlApRpu/",
-    "https://www.instagram.com/p/DDbvBsSAuL9/",
-    "https://www.instagram.com/p/DDbjvPRirir/",
-    "https://www.instagram.com/p/DDa76hMz-sM/",
-    "https://www.instagram.com/p/DDawWYzO68S/",
-    "https://www.instagram.com/p/DDarbkqtfE2/",
-    "https://www.instagram.com/p/DDarWocSM2j/",
-    "https://www.instagram.com/p/DDaSr3Syo0B/",
-    "https://www.instagram.com/p/DDZjKEOzoQX/",
-    "https://www.instagram.com/p/DDZTzzTiu1L/",
-    "https://www.instagram.com/p/DDY-ucciVE2/",
-    "https://www.instagram.com/p/DDYn6iSRIzd/",
-    "https://www.instagram.com/p/DDYSPkRTr0s/",
-    "https://www.instagram.com/p/DDYJKUYNPQT/",
-    "https://www.instagram.com/p/DDYIsqBsQcX/"
+    "https://www.instagram.com/p/DD56_QbvOrt/"
 ]
 
 
@@ -244,11 +138,10 @@ def fetch_reels_shares(reels_data, driver, result_filename, save_path_result):
         
 
         for i, item in enumerate(reels_data):
-            print(f'------START-REEL-{i}----')
             url = item.get("url").replace('/p/', '/reel/')
-            print(f'reels url for share: {url}')
+            print(f'------START-REEL-{i}----reels url for share: {url}')
             # Периодическая очистка кэша Instagram
-            if i in (10, 40, 80, 100, 120, 140, 160, 180):
+            if i % 25 == 0:  # Проверяем, делится ли i на 25
                 driver.execute_script('mobile: shell', {
                     'command': 'am',
                     'args': ['force-stop', 'com.instagram.android']
@@ -351,7 +244,7 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
             url = item.replace('/p/', '/reel/')
             print(f'--START-REEL-{i}--- reels url for share: {url}')
             # Периодическая очистка кэша Instagram
-            if i in (25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475, 500, 525, 550, 575, 600, 625, 650, 675, 700, 725, 750, 775, 800, 825, 850, 875, 900, 925, 950, 975, 1000):
+            if i % 25 == 0:  # Проверяем, делится ли i на 25
                 driver.execute_script('mobile: shell', {
                     'command': 'am',
                     'args': ['force-stop', 'com.instagram.android']

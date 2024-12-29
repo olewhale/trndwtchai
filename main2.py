@@ -438,7 +438,7 @@ def process_data(account, days=2, links=[], scheme=0):
         json.dump(output_data, file, ensure_ascii=False, indent=4)
     print(json.dumps(output_data, ensure_ascii=False, indent=4))
     # Выводим только первые 10 транскрипций
-    print(json.dumps(output_data["transcriptions"][:10], ensure_ascii=False, indent=4))
+    print(json.dumps(output_data["transcriptions"][:5], ensure_ascii=False, indent=4))
     #sys.exit()
 
     results = insert_transcription(extracted_data, output_data)

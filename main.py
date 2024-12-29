@@ -70,11 +70,11 @@ def schedule_app_run(target_time_str, option="all"):
 
 
 if __name__ == "__main__":
-    x = 1
+    x = 0
 
     if x == 0:
         print("Скрипт запущен")
-        main2.app_run(option="one", account_id=11, day_for_one=14)
+        main2.app_run(option="one", account_id=16, day_for_one=14)
     elif x == 1:
         print("Скрипт запущен")
         main2.app_run(option="all", day_for_all=3)
