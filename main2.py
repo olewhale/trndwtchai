@@ -637,6 +637,12 @@ def app_run(option="all", account_id=0, day_for_one=14, day_for_all=2):
     #executor.submit(process_data, request, table_list[2], 10)
     return None
 
+
+
+
+
+
+
 links_list = ReelLinks(username="olegmazunin",
                        links='''
 https://www.instagram.com/reel/DCurCVtsLvq,
