@@ -7,20 +7,45 @@ import time, sys, os, json, re, random
 from dotenv import load_dotenv
 from datetime import datetime
 from tqdm import tqdm
+import xml.etree.ElementTree as ET
+import logging
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
 
 # Загружаем переменные из .env
 load_dotenv()
 
-lnks = [
-    "https://www.instagram.com/p/DD7yXnDOTPc/",
-    "https://www.instagram.com/p/DD7jEjmO1NX/",
-    "https://www.instagram.com/p/DD7czL3O91I/",
-    "https://www.instagram.com/p/DD7QL5rO0Zj/",
-    "https://www.instagram.com/p/DD7GSTHMTDi/",
-    "https://www.instagram.com/p/DD6zyslvPlZ/",
-    "https://www.instagram.com/p/DD6zYLqOaPe/",
-    "https://www.instagram.com/p/DD56_QbvOrt/"
-]
+lnks_string = '''https://www.instagram.com/p/DEHOUZ1NOVc/
+https://www.instagram.com/p/DEHKcsmtKp8/
+https://www.instagram.com/p/DEHJynktBE1/
+https://www.instagram.com/p/DEHIL94tIku/
+https://www.instagram.com/p/DEHHgsNoz6t/
+https://www.instagram.com/p/DEG4_B8TMhJ/
+https://www.instagram.com/p/DEGJvoPK190/
+https://www.instagram.com/p/DEGDFEyMH6f/
+https://www.instagram.com/p/DEF3pLBsU6e/
+https://www.instagram.com/p/DEF102tMl3-/
+https://www.instagram.com/p/DEFuaIfsSoW/
+https://www.instagram.com/p/DEFswiqCzhL/
+https://www.instagram.com/p/DEFrz5-u6Fz/
+https://www.instagram.com/p/DEFrHbnMU1M/
+https://www.instagram.com/p/DEFpzZ8uYeO/
+https://www.instagram.com/p/DEFmlxoI-_o/
+https://www.instagram.com/p/DEFnRMOM8tB/
+https://www.instagram.com/p/DEFjtanqsQg/
+https://www.instagram.com/p/DEFgixtIJ32/
+https://www.instagram.com/p/DEFfKZNN6Tb/
+https://www.instagram.com/p/DEFcWIAtkLb/
+https://www.instagram.com/p/DEFYh2ntVar/
+https://www.instagram.com/p/DEFXWkeIko0/
+https://www.instagram.com/p/DEFJ795spc0/
+https://www.instagram.com/p/DEFFAuAoSJI/
+https://www.instagram.com/p/DEE9Re1syDF/'''
+
+# Разделяем строку на массив ссылок
+lnks = lnks_string.strip().split('\n')
 
 
 def login_to_instagram ():
@@ -235,8 +260,11 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
 
         time.sleep(3)
         driver.execute_script('mobile: shell', {
-                'command': 'am',
-                'args': [ 'start', '-n', 'com.instagram.android/com.instagram.mainactivity.MainActivity']
+            'command': 'am',
+            'args': [
+                'start',
+                '-n', 'com.instagram.android/com.instagram.mainactivity.MainActivity'
+            ]
         })
         time.sleep(3)
         for i, item in tqdm(enumerate(links, start=1), total=len(links), desc="Process get shares:", unit="reel", file=sys.stdout):
@@ -244,7 +272,7 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
             url = item.replace('/p/', '/reel/')
             print(f'--START-REEL-{i}--- reels url for share: {url}')
             # Периодическая очистка кэша Instagram
-            if i % 25 == 0:  # Проверяем, делится ли i на 25
+            if i % 50 == 0:  # Проверяем, делится ли i на 25
                 driver.execute_script('mobile: shell', {
                     'command': 'am',
                     'args': ['force-stop', 'com.instagram.android']
@@ -252,13 +280,6 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
                 time.sleep(5)
                 print('Cache was cleared')
 
-                # Сохраняем промежуточные результаты
-                #write a data
-                os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
-                with open(save_path_result, "w", encoding="utf-8") as result_file:
-                    json.dump(shares, result_file, ensure_ascii=False, indent=4)
-                print(f"Saved intermediate reels data to {filename}")
-                time.sleep(3)
                 driver.execute_script('mobile: shell', {
                         'command': 'am',
                         'args': [ 'start', '-n', 'com.instagram.android/com.instagram.mainactivity.MainActivity']
@@ -273,28 +294,94 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
                 })
                 
                 
-                # Ожидание загрузки страницы с небольшой рандомизацией
-                delay = random.uniform(5, 7)
-                #print(f'delay:{delay}')
+                # старая версия ожидания - Ожидание загрузки страницы с небольшой рандомизацией
+                delay = random.uniform(4, 6)
                 time.sleep(delay)
+                #page_source = driver.page_source
+
+                
+
+                # По совету чатгпт
+                # Ожидание загрузки страницы вместо time.sleep
+                # try:
+                #     WebDriverWait(driver, 15).until(
+                #         lambda d: 'Reshare number is' in d.page_source
+                #     )
+                #     page_source = driver.page_source
+                # except Exception as e:
+                #     print(f"Ошибка при ожидании загрузки: {e}")
+                #     page_source = ""
 
                 # Попытка найти элемент решера с таймаутом
+                page_source = ""
                 try:
-                    
+                    logging.info("Получение исходного XML страницы...")
+                    WebDriverWait(driver, 15).until(
+                        lambda d: 'Reshare number is' in d.page_source
+                    )
                     page_source = driver.page_source
+                    logging.info("XML страницы успешно получен.")
+                except Exception as e:
+                    print(f"Ошибка при ожидании загрузки страницы: {e}")
 
-                    # Используем регулярное выражение для поиска строки с числом
-                    match = re.search(r'content-desc="Reshare number is(\d+)"', page_source)
+                try:
+                    # Парсим XML с помощью ElementTree
+                    root = ET.fromstring(page_source)
+                    logging.info("XML страницы успешно распарсен.")
 
-                    if match:
-                        reshare_number = match.group(1)  # Извлекаем число
-                        print(f"Reshare number: {reshare_number}")
-                    else:
-                        reshare_number = "-1"
-                        print("Reshare number not found")
+                    # XPath-like поиск родительского элемента
+                    parent_xpath = ".//androidx.recyclerview.widget.RecyclerView/android.widget.FrameLayout/android.view.ViewGroup/android.view.ViewGroup[2]/android.view.ViewGroup[1]/android.view.ViewGroup[2]"
+                    parent_element = root.find(parent_xpath)
 
-                    #Сохраняем данные в массив
-                    shares.append(reshare_number)
+                    if parent_element is None:
+                        logging.error("Родительский элемент не найден.")
+                        raise ValueError("Родительский элемент не найден.")
+
+                    logging.info("Родительский элемент успешно найден.")
+
+                    # Поиск дочерних элементов
+                    logging.info("Получение дочерних элементов родительского элемента...")
+                    child_elements = list(parent_element)
+
+                    logging.info(f"Найдено {len(child_elements)} дочерних элементов.")
+
+                    # Перебор дочерних элементов для поиска "Reshare number is"
+                    reshare_number = "-1"
+                    for index, child in enumerate(child_elements):
+                        content_desc = child.attrib.get("content-desc")  # Получаем атрибут content-desc
+                        logging.info(f"Дочерний элемент {index + 1}/{len(child_elements)}: content-desc = {content_desc}")
+                        if content_desc and "Reshare number is" in content_desc:
+                            # Извлекаем число из content-desc
+                            match = re.search(r'Reshare number is(\d+)', content_desc)
+                            if match:
+                                reshare_number = match.group(1)
+                                logging.info(f"Найдено число репостов: {reshare_number}")
+                                break  # Число найдено, выходим из цикла
+
+                    logging.info(f"Количество репостов: {reshare_number}")
+                    # element = WebDriverWait(driver, 15).until(
+                    #     EC.presence_of_element_located((AppiumBy.ACCESSIBILITY_ID, "Reshare number is"))
+                    # )
+                    # element = driver.find_element(
+                    #     AppiumBy.ANDROID_UIAUTOMATOR,
+                    #     'new UiSelector().descriptionContains("Reshare number is")'
+                    # )
+                    # # Получение значения атрибута content-desc
+                    # content_desc = element.get_attribute("content-desc")
+                    # # Извлечь число с помощью регулярного выражения
+                    # match = re.search(r"Reshare number is (\d+)", content_desc)
+                    
+                    # #match = re.search(r'content-desc="Reshare number is(\d+)"', page_source)
+
+                    # if match:
+                    #     reshare_number = match.group(1)  # Извлекаем число
+                    #     print(f"Reshare number: {reshare_number}")
+                    # else:
+                    #     reshare_number = "-1"
+                    #     print("Reshare number not found")
+
+                    # #Сохраняем данные в массив
+                    # shares.append(reshare_number)
 
                     #<debug>
                     # filen = f"page_s_start_{i}.xml"
@@ -309,11 +396,16 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
             except Exception as e:
                 print(f"Ошибка при открытии Reels: {e}")
                 shares.append("-1")
+                            # Сохраняем промежуточные результаты
+            #write a data after each reels
+            os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
+            with open(save_path_result, "w", encoding="utf-8") as result_file:
+                json.dump(shares, result_file, ensure_ascii=False, indent=4)
 
         #write a data
-        os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
-        with open(save_path_result, "w", encoding="utf-8") as result_file:
-            json.dump(shares, result_file, ensure_ascii=False, indent=4)
+        #os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
+        #with open(save_path_result, "w", encoding="utf-8") as result_file:
+        #    json.dump(shares, result_file, ensure_ascii=False, indent=4)
         print(f"Saved final reels data to {filename}")
 
     except Exception as e:
@@ -345,4 +437,4 @@ def execute_shares_scraping_manual():
             
 
 
-#execute_shares_scraping_manual()
+execute_shares_scraping_manual()

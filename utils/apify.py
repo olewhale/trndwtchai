@@ -22,8 +22,8 @@ def instagram_posts_scrapper_4day(request_dict, days=2):
     load_dotenv()
     # Инициализируем клиента Apify
     APIFY_API = os.getenv('APIFY_API')
-    client = ApifyClient(APIFY_API)
-    #client = ApifyClient("apify_api_7QS7V2vOR18H5mr5mzfGsjIeJByI3C0N8vIu")
+    #client = ApifyClient(APIFY_API)
+    client = ApifyClient("apify_api_3hqO6WcXDHuV5GFdxzGJTxowGyjaTm4nMK7H")
 
 
     # Рассчитываем дату "позавчера"
@@ -86,8 +86,8 @@ def instagram_posts_scrapper(request_dict, days=1):
     APIFY_API = os.getenv('APIFY_API')
 
     # Инициализируем клиента
-    client = ApifyClient(APIFY_API)
-    #client = ApifyClient("apify_api_7QS7V2vOR18H5mr5mzfGsjIeJByI3C0N8vIu")
+    #client = ApifyClient(APIFY_API)
+    client = ApifyClient("apify_api_3hqO6WcXDHuV5GFdxzGJTxowGyjaTm4nMK7H")
 
     # Получение X дней назад
     daysOffset = datetime.now() - timedelta(days=days)
