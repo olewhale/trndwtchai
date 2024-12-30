@@ -437,4 +437,4 @@ def execute_shares_scraping_manual():
             
 
 
-execute_shares_scraping_manual()
+#execute_shares_scraping_manual()

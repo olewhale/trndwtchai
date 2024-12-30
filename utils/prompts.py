@@ -440,11 +440,7 @@ caption = {caption}
     #print(research_paper)
 
     rewritedData = completion.choices[0].message.parsed
-    #rewrited_data_json = rewrited_data.model_dump_json() if rewritedData else {}
-    #rew = rewritedData.dict()
-    print("-----------------")
-    print(json.dumps(rewritedData.dict(), ensure_ascii=False, indent=4))
-    print("-----------------")
+
     # Преобразуем объект модели в JSON-словарь
     return rewritedData.dict()
 

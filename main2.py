@@ -471,12 +471,9 @@ def process_data(account, days=2, links=[], scheme=0):
         if transcription != "Ошибка транскрибации":
             spez_original_answer = gpt.spez_original_script(transcription)
 
-            print(
-                json.dumps(spez_original_answer, ensure_ascii=False, indent=4))
-            print("------------------")
-            # Print gpt_answer type and value for debugging
-            #print(f"gpt_answer type: {type(gpt_answer)}")
-            #print(f"gpt_answer value: {gpt_answer}")
+            # Выводим первые 100 символов из JSON-данных
+            json_output_spez_original = json.dumps(spez_original_answer.dict(), ensure_ascii=False, indent=4)
+            print(json_output_spez_original[:100])  # Выводим только первые 100 символов
             try:
                 #gpt_answer_dict = json.loads(str(gpt_answer))
                 item['original_script'] = {}
@@ -538,7 +535,10 @@ def process_data(account, days=2, links=[], scheme=0):
                     'content': content,
                     'cta': cta
                 }, item.get('caption'))
-
+            # Выводим первые 100 символов из JSON-данных
+            json_output_spez_rewriter = json.dumps(spez_rewriter_answer.dict(), ensure_ascii=False, indent=4)
+            print(json_output_spez_rewriter[:100])  # Выводим только первые 100 символов
+            print("------------------")
             try:
                 item['rewrited_script'] = {}
                 item['rewrited_script']['hook'] = spez_rewriter_answer.get(
