@@ -23,7 +23,7 @@ def instagram_posts_scrapper_4day(request_dict, days=2):
     # Инициализируем клиента Apify
     APIFY_API = os.getenv('APIFY_API')
     #client = ApifyClient(APIFY_API)
-    client = ApifyClient("apify_api_3hqO6WcXDHuV5GFdxzGJTxowGyjaTm4nMK7H")
+    client = ApifyClient("apify_api_2pOaFkgUxyIVHFzhuKK7vRvKPa6B2A3GKmAw")
 
 
     # Рассчитываем дату "позавчера"
@@ -87,7 +87,7 @@ def instagram_posts_scrapper(request_dict, days=1):
 
     # Инициализируем клиента
     #client = ApifyClient(APIFY_API)
-    client = ApifyClient("apify_api_3hqO6WcXDHuV5GFdxzGJTxowGyjaTm4nMK7H")
+    client = ApifyClient("apify_api_2pOaFkgUxyIVHFzhuKK7vRvKPa6B2A3GKmAw")
 
     # Получение X дней назад
     daysOffset = datetime.now() - timedelta(days=days)
@@ -265,6 +265,10 @@ def extracted_reels_data_maker(data):
                 '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
             #print(f"time: {formatted_timestamp}")
             #convert this format 2024-12-08T20:51:49.000Z to this 2024-12-06 00:57:56
+            
+            #это нужно, чтобы убрать сокриэйтеров рилса
+            username_real = entry.get('inputUrl').split('/')[-1]
+
             comments_count = float(entry.get('commentsCount', 0) or 0)
             likes_count = float(entry.get('likesCount', 0) or 0)
             video_play_count = float(entry.get('videoPlayCount', 1)
@@ -282,7 +286,7 @@ def extracted_reels_data_maker(data):
 
         extracted_entry = {
             'account_url': entry.get('inputUrl'),
-            'username': entry.get('ownerUsername'),
+            'username': username_real,
             'url': entry.get('url'),
             'timestamp': formatted_timestamp,
             'videoUrl': entry.get('videoUrl'),
