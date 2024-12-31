@@ -74,7 +74,8 @@ if __name__ == "__main__":
 
     if x == 0:
         print("Скрипт запущен")
-        main2.app_run(option="one", account_id=19, day_for_one=14)
+        #main2.app_run(option="one", account_id=0, day_for_one=1)
+        main2.app_run(option="one", account_id=20, day_for_one=14)
     elif x == 1:
         print("Скрипт запущен")
         main2.app_run(option="all", day_for_all=3)

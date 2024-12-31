@@ -314,21 +314,21 @@ def process_data(account, days=2, links=[], scheme=0):
     print('process data started')
 
     #<DEBUG>
-    # with open("db/0/olegmazunin_apify_20241228_111725.json", "r", encoding="utf-8") as file:
-    #    test_data = json.load(file)
+    with open("db/20/kumar&solo_apify_20241230_173736.json", "r", encoding="utf-8") as file:
+       test_data = json.load(file)
     #</DEBUG>
 
 
     if scheme == 0:
         users_data = ggl.get_table_data_as_json(account, 'DATA')
-        if not users_data and print('No users') is None: return
-        if days < 5:
-            reelsData = apify.instagram_posts_scrapper_4day(users_data, days=days)
-        else:
-            reelsData = apify.instagram_posts_scrapper(users_data, days=days)
+        # if not users_data and print('No users') is None: return
+        # if days < 5:
+        #     reelsData = apify.instagram_posts_scrapper_4day(users_data, days=days)
+        # else:
+        #     reelsData = apify.instagram_posts_scrapper(users_data, days=days)
 
         #<DEBUG>
-        #reelsData = test_data
+        reelsData = test_data
         #</DEBUG>
         if not reelsData and print('No reels data found') is None: return
 
@@ -790,8 +790,8 @@ def app_run(option="all", account_id=0, day_for_one=14, day_for_all=2):
 
     switcher = option  # This should be set appropriately as per your context
     if switcher == "one":
-        #process_data(table_list["accounts"][account_id], days=day_for_one, scheme=0)
-        process_data_onlyspez(table_list["accounts"][account_id], days=day_for_one, scheme=0)
+        process_data(table_list["accounts"][account_id], days=day_for_one, scheme=0)
+        #process_data_onlyspez(table_list["accounts"][account_id], days=day_for_one, scheme=0)
 
     elif switcher == "all":
         # For all accounts
