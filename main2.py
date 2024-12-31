@@ -313,23 +313,28 @@ def process_data(account, days=2, links=[], scheme=0):
     start_time = time.time()
     print('process data started')
 
-    #<DEBUG>
-    with open("db/20/kumar&solo_apify_20241230_173736.json", "r", encoding="utf-8") as file:
-       test_data = json.load(file)
-    #</DEBUG>
+    debug = 0
+
+    if debug == 1:
+        #<DEBUG>
+        with open("db/20/kumar&solo_apify_20241230_173736.json", "r", encoding="utf-8") as file:
+            test_data = json.load(file)
+        #</DEBUG>
 
 
     if scheme == 0:
         users_data = ggl.get_table_data_as_json(account, 'DATA')
-        # if not users_data and print('No users') is None: return
-        # if days < 5:
-        #     reelsData = apify.instagram_posts_scrapper_4day(users_data, days=days)
-        # else:
-        #     reelsData = apify.instagram_posts_scrapper(users_data, days=days)
-
-        #<DEBUG>
-        reelsData = test_data
-        #</DEBUG>
+        if debug == 0:
+            if not users_data and print('No users') is None: return
+            if days < 5:
+                reelsData = apify.instagram_posts_scrapper_4day(users_data, days=days)
+            else:
+                reelsData = apify.instagram_posts_scrapper(users_data, days=days)
+        else:
+            #<DEBUG>
+            reelsData = test_data
+            #</DEBUG>
+        
         if not reelsData and print('No reels data found') is None: return
 
         sorted_data, sortedReelsCount = apify.instagram_scrapper_filter_sorter(
