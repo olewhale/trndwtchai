@@ -1,0 +1,4 @@
+1) во время транскрибации что-то поймалось
+шибка при конвертации reels/20241231/DDzuFSjvMsg.mp4: Command '['ffmpeg', '-i', 'reels/20241231/DDzuFSjvMsg.mp4', '-ac', '1', '-ar', '16000', '-y', 'reels/20241231/DDzuFSjvMsg.wav']' returned non-zero exit status 1.
+Транскрипция сохранена
+Ошибка при обработке DDzuFSjvMsg: stat: path should be string, bytes, os.PathLike or integer, not NoneType

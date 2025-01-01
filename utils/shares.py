@@ -54,18 +54,148 @@ https://www.instagram.com/p/DEFJ795spc0/
 https://www.instagram.com/p/DEFFAuAoSJI/
 https://www.instagram.com/p/DEE9Re1syDF/'''
 
-lnks_string = '''https://www.instagram.com/p/DEFYh2ntVar/
-https://www.instagram.com/p/DEFXWkeIko0/
+lnks_string = '''https://www.instagram.com/p/DEN4xTgNwxB/
+https://www.instagram.com/p/DENmR-QxR9J/
+https://www.instagram.com/p/DENgZg8NWp0/
+https://www.instagram.com/p/DENaE-kvETJ/
+https://www.instagram.com/p/DEPDqGkzTT4/
+https://www.instagram.com/p/DERvOZgzUgx/
+https://www.instagram.com/p/DER2J_ZzmBP/
+https://www.instagram.com/p/DEMgRhBiUGP/
+https://www.instagram.com/p/DEL9xUnvip5/
+https://www.instagram.com/p/DEK3N4AIxoW/
+https://www.instagram.com/p/DEKoQCkMHa3/
+https://www.instagram.com/p/DEKcjXZsx5C/
+https://www.instagram.com/p/DEKYZI8TK1r/
+https://www.instagram.com/p/DEKVhU4zVCU/
+https://www.instagram.com/p/DESKtpZzxsZ/
+https://www.instagram.com/p/DEJ6Df_z6yO/
+https://www.instagram.com/p/DEJ4XnytsrM/
+https://www.instagram.com/p/DEJWlividJG/
+https://www.instagram.com/p/DEJWHKPiXnl/
+https://www.instagram.com/p/DEIXloMoqbt/
+https://www.instagram.com/p/DEH-b-EzTt-/
+https://www.instagram.com/p/DEH3lDtzepB/
+https://www.instagram.com/p/DEHmxDiOjO1/
+https://www.instagram.com/p/DEKHtfezEI9/
+https://www.instagram.com/p/DEHwqDFz5nW/
+https://www.instagram.com/p/DEHQ9WnSzr-/
 https://www.instagram.com/p/DEHOUZ1NOVc/
-https://www.instagram.com/p/DEHKcsmtKp8/
-https://www.instagram.com/p/DEHJynktBE1/
-https://www.instagram.com/p/DEF3pLBsU6e/
-https://www.instagram.com/p/DEF102tMl3-/
-https://www.instagram.com/p/DEFuaIfsSoW/
-https://www.instagram.com/p/DEFswiqCzhL/
-https://www.instagram.com/p/DEFrz5-u6Fz/
-https://www.instagram.com/p/DEFrHbnMU1M/
-https://www.instagram.com/p/DEFpzZ8uYeO/'''
+https://www.instagram.com/p/DEGOQOBtus0/
+https://www.instagram.com/p/DEF7ZstvRE8/
+https://www.instagram.com/p/DEFuqj7Cu9L/
+https://www.instagram.com/p/DEFsHYYtu0g/
+https://www.instagram.com/p/DEFnZfxRQv4/
+https://www.instagram.com/p/DEFd3b8Mh0V/
+https://www.instagram.com/p/DEFXDzxTRQC/
+https://www.instagram.com/p/DEHp2Fez-Ou/
+https://www.instagram.com/p/DEKjPk5z-Ci/
+https://www.instagram.com/p/DEFL2y7ThbN/
+https://www.instagram.com/p/DEKcVhOz2EM/
+https://www.instagram.com/p/DEE22iqNfXK/
+https://www.instagram.com/p/DEE3TJBT4rO/
+https://www.instagram.com/p/DEEds-bIsW3/
+https://www.instagram.com/p/DEDp_FxTsDA/
+https://www.instagram.com/p/DEDd7XmN_0P/
+https://www.instagram.com/p/DEDaJwNs6HE/
+https://www.instagram.com/p/DEDQpjMR0ir/
+https://www.instagram.com/p/DEC9YtByrnI/
+https://www.instagram.com/p/DEH3mBGTVlN/
+https://www.instagram.com/p/DECs4GOM5QV/
+https://www.instagram.com/p/DEFFCLQzf3P/
+https://www.instagram.com/p/DEHcDOiT7M3/
+https://www.instagram.com/p/DEE-Ocqzoh5/
+https://www.instagram.com/p/DECK-syvz-l/
+https://www.instagram.com/p/DECIGXVitOa/
+https://www.instagram.com/p/DECHhAVSA9E/
+https://www.instagram.com/p/DEBpl86vdrr/
+https://www.instagram.com/p/DEAuQoAuG0t/
+https://www.instagram.com/p/DEAmulGtxmo/
+https://www.instagram.com/p/DEAUNAgz5gc/
+https://www.instagram.com/p/DECLrInTQz4/
+https://www.instagram.com/p/DEAHp7ls_9q/
+https://www.instagram.com/p/DEADEeONril/
+https://www.instagram.com/p/DEACI4Vi5oL/
+https://www.instagram.com/p/DD_0MyWCL--/
+https://www.instagram.com/p/DD_lhL7tlcD/
+https://www.instagram.com/p/DD_izlMonyU/
+https://www.instagram.com/p/DD-AhPXt5fu/
+https://www.instagram.com/p/DD9yaOExQm2/
+https://www.instagram.com/p/DD9xn3zy9oV/
+https://www.instagram.com/p/DD9sAw-zNSI/
+https://www.instagram.com/p/DD9Uhyxta8w/
+https://www.instagram.com/p/DD9TAZ-uZay/
+https://www.instagram.com/p/DD8x2McIT0Y/
+https://www.instagram.com/p/DD8Gqfmz9iF/
+https://www.instagram.com/p/DD7xO-XCi7t/
+https://www.instagram.com/p/DD7w0SdPqCO/
+https://www.instagram.com/p/DD7l_91RyF1/
+https://www.instagram.com/p/DD7jaO9utqN/
+https://www.instagram.com/p/DD7ekF6tJqY/
+https://www.instagram.com/p/DD7cc4Ru9X6/
+https://www.instagram.com/p/DD7VKT_IMm0/
+https://www.instagram.com/p/DD7POYbNrzj/
+https://www.instagram.com/p/DD7G-sPz3Su/
+https://www.instagram.com/p/DD68ml7Mp85/
+https://www.instagram.com/p/DD6L9CQoo5w/
+https://www.instagram.com/p/DD596KqoW8d/
+https://www.instagram.com/p/DD4225CNxuf/
+https://www.instagram.com/p/DD4teZLSQRn/
+https://www.instagram.com/p/DD4ksg9Icqc/
+https://www.instagram.com/p/DD4gjrrz5jl/
+https://www.instagram.com/p/DD4HvnRTsc9/
+https://www.instagram.com/p/DD4CtQWukB1/
+https://www.instagram.com/p/DD3_xt-N_wS/
+https://www.instagram.com/p/DD3zikrShkm/
+https://www.instagram.com/p/DD3xRF_t9EK/
+https://www.instagram.com/p/DD3uGhDyUQ1/
+https://www.instagram.com/p/DD3hy9YSQXE/
+https://www.instagram.com/p/DD2N6hrNvJj/
+https://www.instagram.com/p/DD2DCj8T68j/
+https://www.instagram.com/p/DD198kkTUXM/
+https://www.instagram.com/p/DD12aD_C1-C/
+https://www.instagram.com/p/DD1r1N1NtLK/
+https://www.instagram.com/p/DD1V4m6yV2I/
+https://www.instagram.com/p/DD07JFXpDtc/
+https://www.instagram.com/p/DD0cMqPCbuh/
+https://www.instagram.com/p/DD0X8FCyKdx/
+https://www.instagram.com/p/DDzzcEayWZ6/
+https://www.instagram.com/p/DDziIdaR-uB/
+https://www.instagram.com/p/DDztu4Tx7xY/
+https://www.instagram.com/p/DDzrm_KtwUA/
+https://www.instagram.com/p/DDzrRIgPlgY/
+https://www.instagram.com/p/DDzAD2MNgmt/
+https://www.instagram.com/p/DDyyPQrCCxO/
+https://www.instagram.com/p/DDyt5OovKsb/
+https://www.instagram.com/p/DDylHN8t7M8/
+https://www.instagram.com/p/DDyKHquirjC/
+https://www.instagram.com/p/DDyJ6uJxNWF/
+https://www.instagram.com/p/DDxnBi3CHiW/
+https://www.instagram.com/p/DDxma20s_AA/
+https://www.instagram.com/p/DDxhmOUiwzz/
+https://www.instagram.com/p/DDxYXJ3PN23/
+https://www.instagram.com/p/DDxJzxjtsAq/
+https://www.instagram.com/p/DDw_UWroBMo/
+https://www.instagram.com/p/DDw1-t-TsJO/
+https://www.instagram.com/p/DDw02JeRVZB/
+https://www.instagram.com/p/DDwu8F4NBu4/
+https://www.instagram.com/p/DDwVpXKvFY3/
+https://www.instagram.com/p/DDv8O_3SHMJ/
+https://www.instagram.com/p/DDvLzFyAoMe/
+https://www.instagram.com/p/DDunoyavU02/
+https://www.instagram.com/p/DDugHJny5Tg/
+https://www.instagram.com/p/DDuTPkezHEY/
+https://www.instagram.com/p/DDtzVI0SlUO/
+https://www.instagram.com/p/DDs9fA7NWgK/
+https://www.instagram.com/p/DDs63FDPyo0/
+https://www.instagram.com/p/DDsOmwcyk08/
+https://www.instagram.com/p/DDp7yFMpGJ0/
+https://www.instagram.com/p/DDr6DgZR77q/
+https://www.instagram.com/p/DDr2tEPS2zb/
+https://www.instagram.com/p/DDrpiLXyg60/
+https://www.instagram.com/p/DDrVbznoxcq/
+https://www.instagram.com/p/DDq8IjeqYa6/
+https://www.instagram.com/p/DDqvmxZIOLB/'''
 
 # Разделяем строку на массив ссылок
 lnks = lnks_string.strip().split('\n')
@@ -535,13 +665,14 @@ def fetch_reels_shares_manual_INPROGRESS(links, driver, result_filename, save_pa
 def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
     shares =[]
     try:
+
         # Убедись, что Appium сервер запущен по указанному адресу
         driver.execute_script('mobile: shell', {
             'command': 'am',
             'args': ['kill-all']
         })
         driver.press_keycode(3)  # Кнопка Home для выхода на рабочий экран
-        
+        logging.info("kill all apps")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"sharesCount_manual_{timestamp}.json"
 
@@ -558,6 +689,7 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
                     'command': 'am',
                     'args': ['force-stop', 'com.instagram.android']
                 })
+                logging.info("Force-stop inst")
                 time.sleep(3)
                 print('Cache was cleared')
 
@@ -565,6 +697,7 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
                         'command': 'am',
                         'args': [ 'start', '-n', 'com.instagram.android/com.instagram.mainactivity.MainActivity']
                 })
+                logging.info("start instagram again")
                 time.sleep(3)
             
             success = False  # Флаг успешного выполнения
@@ -575,7 +708,7 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
                         'url': url,
                         'package': 'com.instagram.android'
                     })
-                    
+                    logging.info("Open Link")
                     # Ожидание загрузки страницы с небольшой рандомизацией
                     delay = random.uniform(2, 4)
                     time.sleep(delay)
@@ -583,8 +716,9 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
                     try:
                         page_source = driver.page_source
                         # Используем регулярное выражение для поиска строки с числом
+                        logging.info("Get page source")
                         match = re.search(r'content-desc="Reshare number is(\d+)"', page_source)
-                        
+                        logging.info("Found the shares")
                         if match:
                             reshare_number = match.group(1)  # Извлекаем число
                             print(f"Reshare number: {reshare_number}")
@@ -651,9 +785,11 @@ def execute_shares_scraping(reels_data, result_filename, save_path_result):
 
 def execute_shares_scraping_manual():
     instagram_running, driver = login_to_instagram()
-    result_filename = f"vart_result_20241224.json"
+    logging.info("Logged to instagram.")
+    result_filename = f"kumarsolo_result_20241231.json"
     save_path_result = os.path.join('db', 'manual', result_filename)
-
+    
+    logging.info("Run fetch reels")
     fetch_reels_shares_manual(lnks, driver, result_filename, save_path_result)
             
 
