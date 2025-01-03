@@ -17,21 +17,25 @@ def instagram_user_scrapper(request_dict):
     return None
 
 
-def instagram_posts_scrapper_4day(request_dict, days=2):
+def instagram_posts_scrapper(request_dict, days=3, range_days=None):
     # Загружаем переменные из .env
     load_dotenv()
     # Инициализируем клиента Apify
     APIFY_API = os.getenv('APIFY_API')
     #client = ApifyClient(APIFY_API)
-    client = ApifyClient("apify_api_Rt4qBMmDgD2BxrRql5WTzY7I6e8nqu43ICSl")
+    client = ApifyClient("apify_api_lFnZrkICaOaX60Q7842liFlmDNjbOW1wrnWx")
 
 
-    # Рассчитываем дату "позавчера"
+    # Рассчитываем целевые дни
     target_day = datetime.now() - timedelta(days=days)
-    # Определяем начало и конец целевого дня
-    start_of_day = target_day.replace(hour=0, minute=0, second=0, microsecond=0)
-    end_of_day = start_of_day + timedelta(days=1)
-    daysOffsetFormate = start_of_day.strftime('%Y-%m-%d')
+    start_of_day = target_day.date()  # Получаем только дату
+    end_of_day = (target_day + timedelta(days=1)).date()  # Получаем только дату
+
+    # Если указан диапазон дней
+    if range_days:
+        start_range, end_range = map(int, range_days.split('-'))
+        start_of_day = (datetime.now() - timedelta(days=end_range)).date()  # Получаем только дату
+        end_of_day = (datetime.now() - timedelta(days=start_range)).date()  # Получаем только дату
 
     # Извлекаем список username
     usernames = [
@@ -42,12 +46,15 @@ def instagram_posts_scrapper_4day(request_dict, days=2):
     run_input = {
         "username": usernames,
         "resultsLimit": 40,
-        "onlyPostsNewerThan": daysOffsetFormate,
+        "onlyPostsNewerThan": start_of_day.strftime('%Y-%m-%d'),
         "skipPinnedPosts":
         True  # Или True, если нужно пропускать закрепленные посты
     }
     print("Apify input created: " + str(run_input))
     
+    #print("Локальные переменные:", json.dumps(locals(), default=str, ensure_ascii=False, indent=4))
+    #sys.exit()
+
     reelsData = []
     # Запуск актора и ожидание его завершения
     try:
@@ -64,76 +71,74 @@ def instagram_posts_scrapper_4day(request_dict, days=2):
         for item in dataset_items:
             if 'type' in item and item['type'] == 'Video':
                 # Парсим время публикации
-                # Предполагаем формат времени: "2024-12-15T17:00:00.000Z"
-                post_time = datetime.strptime(item['timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ")
-                post_time = post_time.replace(tzinfo=pytz.utc)  # делаем aware
+                post_time = datetime.strptime(item['timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
 
-                # Проверяем, входит ли пост в диапазон позавчерашних суток
-                if start_of_day <= post_time.replace(tzinfo=None) < end_of_day:
+                # Проверяем, входит ли пост в диапазон целевых дат
+                if start_of_day <= post_time <= end_of_day:
                     reelsData.append(item)
 
     except Exception as e:
         print(f"Error processing users: {e}")
     #print(reelsData)
-    return reelsData
+    return dataset_items, reelsData
 
+#DELETE
+# def instagram_posts_scrapper(request_dict, days=1):
+#     # Загружаем переменные из .env
+#     load_dotenv()
+#     # Initialize the ApifyClient with your API token
+#     # Получаем ключ из переменных окружения
+#     APIFY_API = os.getenv('APIFY_API')
 
-def instagram_posts_scrapper(request_dict, days=1):
-    # Загружаем переменные из .env
-    load_dotenv()
-    # Initialize the ApifyClient with your API token
-    # Получаем ключ из переменных окружения
-    APIFY_API = os.getenv('APIFY_API')
+#     # Инициализируем клиента
+#     #client = ApifyClient(APIFY_API)
+#     client = ApifyClient("apify_api_Rt4qBMmDgD2BxrRql5WTzY7I6e8nqu43ICSl")
 
-    # Инициализируем клиента
-    #client = ApifyClient(APIFY_API)
-    client = ApifyClient("apify_api_Rt4qBMmDgD2BxrRql5WTzY7I6e8nqu43ICSl")
+#     # Получение X дней назад
+#     daysOffset = datetime.now() - timedelta(days=days)
+#     daysOffsetFormate = daysOffset.strftime('%Y-%m-%d')
 
-    # Получение X дней назад
-    daysOffset = datetime.now() - timedelta(days=days)
-    daysOffsetFormate = daysOffset.strftime('%Y-%m-%d')
+#     # Функция для получения постов списка из юзеров
+#     #users_list = request_dict.get("users", [])
 
-    # Функция для получения постов списка из юзеров
-    #users_list = request_dict.get("users", [])
+#     # Извлекаем все username и создаем run_input с объединением всех пользователей
+#     usernames = [
+#         item.get('username') for item in request_dict
+#         if isinstance(item, dict)
+#     ]
 
-    # Извлекаем все username и создаем run_input с объединением всех пользователей
-    usernames = [
-        item.get('username') for item in request_dict
-        if isinstance(item, dict)
-    ]
-
-    run_input = {
-        "username": usernames,
-        "resultsLimit": 40,
-        "onlyPostsNewerThan": daysOffsetFormate,
-        "skipPinnedPosts":
-        True  # Или True, если нужно пропускать закрепленные посты
-    }
-    print("Apify input created: " + str(run_input))
+#     run_input = {
+#         "username": usernames,
+#         "resultsLimit": 40,
+#         "onlyPostsNewerThan": daysOffsetFormate,
+#         "skipPinnedPosts":
+#         True  # Или True, если нужно пропускать закрепленные посты
+#     }
+#     print("Apify input created: " + str(run_input))
     
-    reelsData = []
-    # Запуск актора и ожидание его завершения
-    try:
-        #<last_version>
-        run = client.actor("apify/instagram-post-scraper").call(
-            run_input=run_input)
-        dataset_items = client.dataset(
-            run["defaultDatasetId"]).list_items().items
-        #</last_version>
-        #with open("db/13/potok_theexpertgarden_apify_20241227_174839.json", "r", encoding="utf-8") as file:
-        #    dataset_items = json.load(file)
-        # фильтрация только Reels('Video') из набора данных актора
-        print('--------')
-        print('count of input items: ' + str(len(dataset_items)))
-        print('-----')
-        for item in dataset_items:
-            if 'type' in item and item['type'] == 'Video':
-                reelsData.append(item)
+#     reelsData = []
+#     # Запуск актора и ожидание его завершения
+#     try:
+#         #<last_version>
+#         run = client.actor("apify/instagram-post-scraper").call(
+#             run_input=run_input)
+#         dataset_items = client.dataset(
+#             run["defaultDatasetId"]).list_items().items
+#         #</last_version>
+#         #with open("db/13/potok_theexpertgarden_apify_20241227_174839.json", "r", encoding="utf-8") as file:
+#         #    dataset_items = json.load(file)
+#         # фильтрация только Reels('Video') из набора данных актора
+#         print('--------')
+#         print('count of input items: ' + str(len(dataset_items)))
+#         print('-----')
+#         for item in dataset_items:
+#             if 'type' in item and item['type'] == 'Video':
+#                 reelsData.append(item)
 
-    except Exception as e:
-        print(f"Error processing users: {e}")
-    #print(reelsData)
-    return reelsData
+#     except Exception as e:
+#         print(f"Error processing users: {e}")
+#     #print(reelsData)
+#     return reelsData
 
 
 def reels_scrapper(links):
@@ -244,11 +249,11 @@ def instagram_scrapper_filter_sorter(reelsData, request_dict):
     print("----------------")
 
     #Просто выписываем какие рилсы мы взяли и с каким количеством просмотров
-    # for item in sorted_data:
-    #     print(
-    #         f'username: {item["ownerUsername"]}, shortcode: {item["shortCode"]}, views: {item["videoPlayCount"]}, timestamp: {item.get("timestamp", "N/A")}'  # Используем "N/A" если timestamp отсутствует
-    #     )
-    # print("----------------")
+    for item in sorted_data:
+        print(
+            f'username: {item["ownerUsername"]}, shortcode: {item["shortCode"]}, views: {item["videoPlayCount"]}, timestamp: {item.get("timestamp", "N/A")}'  # Используем "N/A" если timestamp отсутствует
+        )
+    print("----------------")
     sortedReelsCount = len(sorted_data)
     return sorted_data, sortedReelsCount
 

@@ -309,11 +309,25 @@ def insert_transcription(extracted_data, output_data):
 
 
 
-def process_data(account, days=2, links=[], scheme=0):
+def process_data(account, days=3, links=[], scheme=0, range_days=None):
     start_time = time.time()
     print('process data started')
 
     debug = 0
+
+
+    # Генерируем имя файла только один раз
+    now = datetime.datetime.now()
+    date_time_str = now.strftime("%Y%m%d_%H%M%S")
+    save_path = os.path.join('db', str(account['id']))
+    os.makedirs(save_path, exist_ok=True)
+
+    output_apify_filename = f"{account['username']}_apify_{date_time_str}.json"
+    output_database_filename = f"{account['username']}_database_{date_time_str}.json"
+    save_path_apify = os.path.join('db', str(account['id']),
+                                   output_apify_filename)
+    save_path_apify_database = os.path.join('db', str(account['id']),
+                                   output_database_filename)
 
     if debug == 1:
         #<DEBUG>
@@ -326,10 +340,8 @@ def process_data(account, days=2, links=[], scheme=0):
         users_data = ggl.get_table_data_as_json(account, 'DATA')
         if debug == 0:
             if not users_data and print('No users') is None: return
-            if days < 5:
-                reelsData = apify.instagram_posts_scrapper_4day(users_data, days=days)
-            else:
-                reelsData = apify.instagram_posts_scrapper(users_data, days=days)
+            dataset_items, reelsData = apify.instagram_posts_scrapper(users_data, range_days=range_days)
+
         else:
             #<DEBUG>
             reelsData = test_data
@@ -373,18 +385,12 @@ def process_data(account, days=2, links=[], scheme=0):
     print("*")
     print("*")
 
-    # Генерируем имя файла только один раз
-    now = datetime.datetime.now()
-    date_time_str = now.strftime("%Y%m%d_%H%M%S")
-    save_path = os.path.join('db', str(account['id']))
-    os.makedirs(save_path, exist_ok=True)
 
-    output_apify_filename = f"{account['username']}_apify_{date_time_str}.json"
-    save_path_apify = os.path.join('db', str(account['id']),
-                                   output_apify_filename)
-    #Сохраняем apify данные в json файл
+    #Сохраняем apify и apify_database данные в json файл
     with open(save_path_apify, "w", encoding="utf-8") as file:
         json.dump(reelsData, file, ensure_ascii=False, indent=4)
+    with open(save_path_apify_database, "w", encoding="utf-8") as file:
+        json.dump(dataset_items, file, ensure_ascii=False, indent=4)
 
     
     if scheme == 0:
@@ -788,27 +794,35 @@ def process_data_onlyspez(account, days=2, links=[], scheme=0):
         print(f"Ошибка в процессе обработки в ggl: {e}")
 
 
-def app_run(option="all", account_id=0, day_for_one=14, day_for_all=2):
+
+
+
+
+def app_run(option="all", account_id=0, range_days="3-3"):
     logger.info("------APP IS RUNNING------")
     with open("db/main/db.json", "r", encoding="utf-8") as file:
         table_list = json.load(file)
 
     switcher = option  # This should be set appropriately as per your context
     if switcher == "one":
-        process_data(table_list["accounts"][account_id], days=day_for_one, scheme=0)
+        process_data(table_list["accounts"][account_id], range_days=range_days, scheme=0)
         #process_data_onlyspez(table_list["accounts"][account_id], days=day_for_one, scheme=0)
 
     elif switcher == "all":
         # For all accounts
         for account in table_list["accounts"]:
             if account["subscription"] != "stop" and account["subscription"] != "free":
-                process_data(account, days=day_for_all, scheme=0)
+                process_data(account, range_days=range_days, scheme=0)
     elif switcher == "":
         #process_data(account, days=1, scheme=0)
         pass
     logger.info("------APP IS STOPPED------")
     #executor.submit(process_data, request, table_list[2], 10)
     return None
+
+
+
+
 
 
 

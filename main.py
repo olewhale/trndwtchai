@@ -74,11 +74,10 @@ if __name__ == "__main__":
 
     if x == 0:
         print("Скрипт запущен")
-        #main2.app_run(option="one", account_id=0, day_for_one=1)
-        main2.app_run(option="one", account_id=20, day_for_one=14)
+        main2.app_run(option="one", account_id=21, range_days="0-14")
     elif x == 1:
         print("Скрипт запущен")
-        main2.app_run(option="all", day_for_all=3)
+        main2.app_run(option="all", range_days="3-4")
     elif x == 2:
         print("Скрипт запущен")
         target_time_str = "20:00"  # Укажите желаемое время запуска в формате ЧЧ:ММ
