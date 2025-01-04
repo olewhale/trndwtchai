@@ -313,7 +313,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     start_time = time.time()
     print('process data started')
 
-    debug = 0
+    debug = 1
 
 
     # Генерируем имя файла только один раз
@@ -338,7 +338,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
 
     if debug == 1:
         #<DEBUG>
-        with open("db/22/damir_database_20250104_193710.json", "r", encoding="utf-8") as file:
+        with open("db/23/olya_combined_data.json", "r", encoding="utf-8") as file:
             test_data = json.load(file)
         #</DEBUG>
 
@@ -426,8 +426,8 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
         transcript_data = download_tiktok(extracted_data) #TIKTOK
 
     if debug == 1:
-        print(json.dumps(extracted_data, ensure_ascii=False, indent=4))
-        print("Done")
+        #print(json.dumps(extracted_data, ensure_ascii=False, indent=4))
+        print("DEBUG   Done")
     
     '''
     ###TEST_ZONE Помогает использовать уже полученный json файл от apify. Не забудь убрать reelsData в комментинг

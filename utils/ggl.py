@@ -3,7 +3,7 @@ from fastapi.params import Query
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from dotenv import load_dotenv
-import os, sys, json
+import os, sys, json, time
 
 # Загружаем переменные из .env
 load_dotenv()
@@ -55,6 +55,7 @@ def get_table_data_as_json(account, list_name):
     except Exception as e:
         print(f"Ошибка в процессе get_table_data_as_json: {e}")
         return []
+
 
 
 def append_data_to_google_sheet_BACKUP(json_results, table_id, list_name, scheme=0, scraping_type=None):
@@ -667,6 +668,77 @@ def append_data_to_google_sheet(json_results, table_id, list_name, scheme=0, scr
         print(f"Ошибка в процессе обработки в ggl: {e}")
 
     print("Done!")
+
+
+
+############################
+# SCRAPE NUMBER OF REELS IN TABLES
+############################
+
+
+def get_video_processed_number(account):
+    try:
+        print(f"----Starting to collect data for {account['username']}")
+
+        # Set up Google Sheets API credentials
+        scope = [
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(
+            'static/reelstranscription-a94a4b07252e.json', scope)
+        client = gspread.authorize(credentials)
+
+        # Open the Google Sheet
+        google_sheet_url = f'https://docs.google.com/spreadsheets/d/{account["table_id"]}/edit?usp=sharing'
+        # Open the Google Sheets for both INSTAGRAM and TIKTOK
+        instagram_sheet = client.open_by_url(google_sheet_url).worksheet('INSTAGRAM')
+        tiktok_sheet = client.open_by_url(google_sheet_url).worksheet('TIKTOK')
+
+        # Read the value from cell A3 for both sheets
+        instagram_a3_value = instagram_sheet.cell(3, 1).value
+        tiktok_a3_value = tiktok_sheet.cell(3, 1).value
+
+        print(f"INSTAGRAM A3 Value: {instagram_a3_value}")
+        print(f"TIKTOK A3 Value: {tiktok_a3_value}")
+        return instagram_a3_value, tiktok_a3_value
+    except Exception as e:
+        print(f"Ошибка в процессе get_table_data_as_json: {e}")
+        return None
+
+def sum_a3_values():
+
+    with open("db/main/db.json", "r", encoding="utf-8") as file:
+        table_list = json.load(file)
+    
+    total_instagram_a3 = 0
+    total_tiktok_a3 = 0
+
+    for account in table_list["accounts"]:
+        try:
+            instagram_a3_value, tiktok_a3_value = get_video_processed_number(account)
+            
+            # Проверяем, что значения не None и преобразуем их в целые числа
+            if instagram_a3_value is not None:
+                total_instagram_a3 += int(instagram_a3_value)
+            if tiktok_a3_value is not None:
+                total_tiktok_a3 += int(tiktok_a3_value)
+            time.sleep(2)
+            print(f'-----account {account["username"]} scrapped')
+        except Exception as e:
+            print(f"Ошибка в процессе for account in table_list: {e}")
+            return None
+
+    print(f"Total INSTAGRAM A3 Value: {total_instagram_a3}")
+    print(f"Total TIKTOK A3 Value: {total_tiktok_a3}")
+    sum = total_instagram_a3+total_tiktok_a3
+    print(f"Total SUM: {sum}")
+    return sum
+
+
+#sum_a3_values()
 
 
 
