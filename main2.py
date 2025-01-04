@@ -338,7 +338,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
 
     if debug == 1:
         #<DEBUG>
-        with open("db/22/damir_database_20250104_151439.json", "r", encoding="utf-8") as file:
+        with open("db/manual/dataset_instagram-post-scraper_2025-01-04_16-41-25-511.json", "r", encoding="utf-8") as file:
             test_data = json.load(file)
         #</DEBUG>
 
@@ -363,15 +363,19 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
             if debug == 0:
                 if not users_data and print('No users') is None: return
                 dataset_items = apify.instagram_posts_scrapper(users_data, start_of_day, range_days=range_days)
+                
+                with open(save_path_apify_database, "w", encoding="utf-8") as file:
+                        json.dump(dataset_items, file, ensure_ascii=False, indent=4)
+                        
             else:
                 #<DEBUG>
-                reelsData = test_data
+                dataset_items = test_data
                 #</DEBUG>
             
-            if not reelsData and print('No reels data found') is None: return
+            if not dataset_items and print('No reels data found') is None: return
 
             reelsData, sorted_data, sortedReelsCount = apify.instagram_scrapper_filter_sorter(
-                reelsData, users_data, start_of_day, end_of_day)
+                dataset_items, users_data, start_of_day, end_of_day)
             if sortedReelsCount == 0 and print('No new reels') is None: return
 
             extracted_data = apify.extracted_reels_data_maker(sorted_data)
@@ -382,6 +386,10 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
             if debug == 0:
                 if not users_data and print('No users') is None: return
                 dataset_items = apify.tiktok_posts_scrapper(users_data, start_of_day, range_days=range_days)
+                
+                with open(save_path_apify_database, "w", encoding="utf-8") as file:
+                        json.dump(dataset_items, file, ensure_ascii=False, indent=4)
+            
             else:
                 #<DEBUG>
                 dataset_items = test_data
@@ -439,12 +447,10 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     print("*")
 
 
-    #Сохраняем apify и apify_database данные в json файл
+    #Сохраняем отфильтрованные рилсы в json файл
     with open(save_path_apify, "w", encoding="utf-8") as file:
         json.dump(reelsData, file, ensure_ascii=False, indent=4)
-    if debug != 1:
-        with open(save_path_apify_database, "w", encoding="utf-8") as file:
-            json.dump(dataset_items, file, ensure_ascii=False, indent=4)
+
 
 
     output_filename = f"{account['username']}_transcriptions_{date_time_str}.json"

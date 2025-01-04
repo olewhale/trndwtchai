@@ -23,7 +23,7 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
     # Инициализируем клиента Apify
     APIFY_API = os.getenv('APIFY_API')
     #client = ApifyClient(APIFY_API)
-    client = ApifyClient("apify_api_lFnZrkICaOaX60Q7842liFlmDNjbOW1wrnWx")
+    client = ApifyClient("apify_api_Mh8rUvYzbCNWJJbHyh8okswsRTA39z1cA3BD")
 
 
     # Рассчитываем целевые дни
@@ -77,7 +77,7 @@ def tiktok_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
     # Инициализируем клиента Apify
     APIFY_API = os.getenv('APIFY_API')
     #client = ApifyClient(APIFY_API)
-    client = ApifyClient("apify_api_lFnZrkICaOaX60Q7842liFlmDNjbOW1wrnWx")
+    client = ApifyClient("apify_api_Mh8rUvYzbCNWJJbHyh8okswsRTA39z1cA3BD")
 
     # Извлекаем список username
     usernames = [
@@ -207,13 +207,13 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     reelsData = []
     # Фильтруем только рилсы (type='Video'), которые попадают в целевые сутки (позавчера)
     for item in dataset_items:
-        #if 'type' in item and item['type'] == 'Video':
-        # Парсим время публикации
-        post_time = datetime.strptime(item['createTimeISO'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
-        print(post_time)
-        # Проверяем, входит ли пост в диапазон целевых дат
-        if start_of_day <= post_time <= end_of_day:
-            reelsData.append(item)
+        if 'type' in item and item['type'] == 'Video':
+            # Парсим время публикации
+            post_time = datetime.strptime(item['timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
+            #print(post_time)
+            # Проверяем, входит ли пост в диапазон целевых дат
+            if start_of_day <= post_time <= end_of_day:
+                reelsData.append(item)
     # Преобразуем request_dict в словарь для быстрого поиска, у меня тут появляется такой массив {'username_1': 2000, 'username_2':34000}
     username_limits = {
         entry['username']: entry['viewsFilter']
@@ -242,11 +242,11 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     print("----------------")
 
     #Просто выписываем какие рилсы мы взяли и с каким количеством просмотров
-    for item in sorted_data:
-        print(
-            f'username: {item["ownerUsername"]}, shortcode: {item["shortCode"]}, views: {item["videoPlayCount"]}, timestamp: {item.get("timestamp", "N/A")}'  # Используем "N/A" если timestamp отсутствует
-        )
-    print("----------------")
+    # for item in sorted_data:
+    #     print(
+    #         f'username: {item["ownerUsername"]}, shortcode: {item["shortCode"]}, views: {item["videoPlayCount"]}, timestamp: {item.get("timestamp", "N/A")}'  # Используем "N/A" если timestamp отсутствует
+    #     )
+    # print("----------------")
     sortedReelsCount = len(sorted_data)
     return reelsData, sorted_data, sortedReelsCount
 
