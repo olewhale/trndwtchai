@@ -93,7 +93,7 @@ def download_reels(data):
 
 
     # Основной процесс скачивания с проверкой и заменой хоста
-    for item in tqdm(data, desc="Процесс скачивания рилс", unit="рилс"):
+    for item in tqdm(data, desc="Процесс скачивания видео", unit="видео"):
         shortCode = item.get('shortCode')
         original_url = item.get('videoUrl')
         video_file_name = f'{shortCode}.mp4'
@@ -164,7 +164,7 @@ def download_tiktok(data):
             return False
 
     # Основной процесс скачивания с проверкой и заменой хоста
-    for item in data:
+    for item in tqdm(data, desc="Процесс скачивания видео", unit="видео"):
         shortCode = item.get('shortCode')
         original_url = item.get('videoUrl')
         video_file_name = f'{shortCode}.mp4'
@@ -313,7 +313,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     start_time = time.time()
     print('process data started')
 
-    debug = 0
+    debug = 1
 
 
     # Генерируем имя файла только один раз
@@ -338,7 +338,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
 
     if debug == 1:
         #<DEBUG>
-        with open("db/manual/dataset_instagram-post-scraper_2025-01-04_16-41-25-511.json", "r", encoding="utf-8") as file:
+        with open("db/22/damir_database_20250104_193710.json", "r", encoding="utf-8") as file:
             test_data = json.load(file)
         #</DEBUG>
 

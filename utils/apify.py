@@ -254,13 +254,13 @@ def tiktok_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end
     reelsData = []
     # Фильтруем только рилсы (type='Video'), которые попадают в целевые сутки (позавчера)
     for item in dataset_items:
-        #if 'type' in item and item['type'] == 'Video':
-        # Парсим время публикации
-        post_time = datetime.strptime(item['createTimeISO'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
-        print(post_time)
-        # Проверяем, входит ли пост в диапазон целевых дат
-        if start_of_day <= post_time <= end_of_day:
-            reelsData.append(item)
+        if 'createTimeISO' in item:
+            # Парсим время публикации
+            post_time = datetime.strptime(item['createTimeISO'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
+            #print(post_time)
+            # Проверяем, входит ли пост в диапазон целевых дат
+            if start_of_day <= post_time <= end_of_day:
+                reelsData.append(item)
 
     # Преобразуем request_dict в словарь для быстрого поиска, у меня тут появляется такой массив {'username_1': 2000, 'username_2':34000}
     username_limits = {
@@ -290,11 +290,11 @@ def tiktok_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end
     print("----------------")
 
     #Просто выписываем какие рилсы мы взяли и с каким количеством просмотров
-    for item in sorted_data:
-        print(
-            f'username: {item["authorMeta"]["name"]}, shortcode: {item["id"]}, views: {item["playCount"]}, timestamp: {item.get("createTimeISO", "N/A")}'  # Используем "N/A" если timestamp отсутствует
-        )
-    print("----------------")
+    # for item in sorted_data:
+    #     print(
+    #         f'username: {item["authorMeta"]["name"]}, shortcode: {item["id"]}, views: {item["playCount"]}, timestamp: {item.get("createTimeISO", "N/A")}'  # Используем "N/A" если timestamp отсутствует
+    #     )
+    # print("----------------")
     sortedReelsCount = len(sorted_data)
     return reelsData, sorted_data, sortedReelsCount
 
