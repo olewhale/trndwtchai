@@ -85,6 +85,7 @@ def tiktok_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
         if isinstance(item, dict)
     ]
 
+    '''
     run_input = {
         "excludePinnedPosts": True,
         "oldestPostDate": start_of_day.strftime('%Y-%m-%d'),
@@ -101,6 +102,14 @@ def tiktok_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
         "searchSection": "",
         "maxProfilesPerQuery": 10
     }
+    '''
+    run_input = {
+        "maxItems": 100,
+        "until": start_of_day.strftime('%Y-%m-%d'),
+        "usernames": usernames
+    }
+
+
     print("Apify input created: " + str(run_input))
     
     #print("Локальные переменные:", json.dumps(locals(), default=str, ensure_ascii=False, indent=4))
@@ -109,7 +118,7 @@ def tiktok_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
     
     # Запуск актора и ожидание его завершения
     try:
-        run = client.actor("clockworks/free-tiktok-scraper").call(
+        run = client.actor("apidojo/tiktok-profile-scraper").call(
             run_input=run_input)
         dataset_items = client.dataset(
             run["defaultDatasetId"]).list_items().items
@@ -254,9 +263,9 @@ def tiktok_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end
     reelsData = []
     # Фильтруем только рилсы (type='Video'), которые попадают в целевые сутки (позавчера)
     for item in dataset_items:
-        if 'createTimeISO' in item:
+        if 'uploadedAtFormatted' in item:
             # Парсим время публикации
-            post_time = datetime.strptime(item['createTimeISO'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
+            post_time = datetime.strptime(item['uploadedAtFormatted'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
             #print(post_time)
             # Проверяем, входит ли пост в диапазон целевых дат
             if start_of_day <= post_time <= end_of_day:
@@ -271,15 +280,15 @@ def tiktok_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end
     # Фильтруем рилсы
     filtered_reels = [
         reel for reel in reelsData
-        if (reel['webVideoUrl'].split('@')[1].split('/')[0] in username_limits and 
-            reel['playCount'] >= username_limits[reel['webVideoUrl'].split('@')[1].split('/')[0]])
+        if (reel['channel']['url'].split('@')[1].split('/')[0] in username_limits and 
+            reel['views'] >= username_limits[reel['channel']['url'].split('@')[1].split('/')[0]])
     ]
 
     # Сортировка только по 'timestamp'
     sorted_data = sorted(
         filtered_reels,
         key=lambda x: (
-            x.get('createTimeISO', 0)  # Используем 0 в качестве значения по умолчанию для timestamp, если он отсутствует
+            x.get('uploadedAtFormatted', 0)  # Используем 0 в качестве значения по умолчанию для timestamp, если он отсутствует
         )
     )
 
@@ -357,21 +366,32 @@ def extracted_tiktok_data_maker(data):
     # Extracting the specified fields
     extracted_data = []
     for entry in data:
+
+        # Initialize er_followers
+        er_all = 0
+        er_shares = 0  # Initialize to avoid UnboundLocalError
+        er_followers = 0  # Initialize to avoid UnboundLocalError
         try:
-            # Initialize er_followers
-            er_shares = 0  # Initialize to avoid UnboundLocalError
-            er_followers = 0  # Initialize to avoid UnboundLocalError
+
 
             # Convert ISO 8601 to a normal timestamp
             formatted_timestamp = datetime.strptime(
-                str(entry.get('createTimeISO')),
+                str(entry.get('uploadedAtFormatted')),
                 '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
-            followers_count = float(entry.get("authorMeta", {}).get("fans", 0))
-            comments_count = float(entry.get('commentCount', 0))
-            likes_count = float(entry.get('diggCount', 0))
-            video_play_count = float(entry.get('playCount', 1))
-            collect_count = float(entry.get('collectCount', 0))
-            share_count = float(entry.get('shareCount', 0))
+            followers_count = float(entry.get("channel", {}).get("followers", 0))
+            print('followers_count')
+            comments_count = float(entry.get('comments', 0))
+            print('comments_count')
+            likes_count = float(entry.get('likes', 0))
+            print('likes_count')
+            video_play_count = float(entry.get('views', 1))
+            print('video_play_count')
+            collect_count = float(entry.get('bookmarks', 0))
+            print('collect_count')
+            share_count = float(entry.get('shares', 0))
+            print('share_count')
+            duration = entry.get("video", {}).get("duration", 0)
+            print('duration')
 
             if likes_count != -1:
                 er_all = str(
@@ -380,37 +400,35 @@ def extracted_tiktok_data_maker(data):
             else:
                 er_all = 0
             
-            if entry.get('shareCount') != 0 and entry.get('playCount') != 0:
+            if entry.get('shares') != 0 and entry.get('views') != 0:
                 er_shares = str( round( share_count / video_play_count, 10))
             else:
                 er_shares = 0
             
-            if entry["authorMeta"]["fans"] != 0 and entry.get('playCount') != 0:
+            if entry["channel"]["followers"] != 0 and entry.get('views') != 0:
                 er_followers = str( round( video_play_count / followers_count , 10))
             else:
                 er_followers = 0
 
 
         except (ValueError, TypeError) as e:
-            print(f"Error calculating engagement: {e}")
-            er_all = 0
+            print(f"Error calculating engagement in id = {entry.get('id')}: {e}")
 
         extracted_entry = {
-            'account_url': entry["authorMeta"]["profileUrl"],
-            'username': entry["authorMeta"]["name"],
-            'url': entry.get('webVideoUrl'),
+            'account_url': entry["channel"]["url"],
+            'username': entry["channel"]["username"],
+            'url': entry.get('postPage'),
             'timestamp': formatted_timestamp,
-            'videoUrl':
-            entry.get('mediaUrls')[0] if entry.get('mediaUrls') else None,
+            'videoUrl': entry.get("video", {}).get("url", ""),
             'shortCode': entry.get('id'),
-            'caption': entry.get('text'),
-            'followersCount': entry["authorMeta"]["fans"],
-            'commentsCount': entry.get('commentCount'),
-            'likesCount': entry.get('diggCount'),
-            'collectCount': entry.get('collectCount'),
-            'shareCount': entry.get('shareCount'),
-            'videoPlayCount': entry.get('playCount'),
-            'videoDuration': entry["videoMeta"]["duration"],
+            'caption': entry.get('title'),
+            'followersCount': entry.get("channel", {}).get("followers", 0),
+            'commentsCount': entry.get('comments'),
+            'likesCount': entry.get('likes'),
+            'collectCount': entry.get('bookmarks'),
+            'shareCount': entry.get('shares'),
+            'videoPlayCount': entry.get('views'),
+            'videoDuration': duration,
             'er_all': er_all,
             'er_shares': er_shares,
             'er_followers': er_followers

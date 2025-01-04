@@ -522,11 +522,7 @@ COLUMNS_CONFIG = {
         },
         {
             "name": "er_followers",
-            "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=TO_PERCENT({item.get("er_followers", "-")})'
-                if item.get("er_followers") != 0
-                else "-"
-            )
+            "value_func": lambda item, row_n, i2excel, name2idx: (f'=TO_PERCENT({item.get("er_followers", "-")})')
         },
         {
             "name": "likes",
@@ -546,19 +542,11 @@ COLUMNS_CONFIG = {
         },
         {
             "name": "er_all",
-            "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=TO_PERCENT({item.get("er_all", "-")})'
-                if item.get("er_all") != 0
-                else "-"
-            )
+            "value_func": lambda item, row_n, i2excel, name2idx: (f'=TO_PERCENT({item.get("er_all", "-")})')
         },
         {
             "name": "er_shares",
-            "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=TO_PERCENT({item.get("er_shares", "-")})'
-                if item.get("er_shares") != 0
-                else "-"
-            )
+            "value_func": lambda item, row_n, i2excel, name2idx: ( f'=TO_PERCENT({item.get("er_shares", "-")})')
         },
         {
             "name": "virus_detector",
