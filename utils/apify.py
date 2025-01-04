@@ -17,7 +17,7 @@ def instagram_user_scrapper(request_dict):
     return None
 
 
-def instagram_posts_scrapper(request_dict, days=3, range_days=None):
+def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
     # Загружаем переменные из .env
     load_dotenv()
     # Инициализируем клиента Apify
@@ -55,7 +55,6 @@ def instagram_posts_scrapper(request_dict, days=3, range_days=None):
     #print("Локальные переменные:", json.dumps(locals(), default=str, ensure_ascii=False, indent=4))
     #sys.exit()
 
-    reelsData = []
     # Запуск актора и ожидание его завершения
     try:
         run = client.actor("apify/instagram-post-scraper").call(
@@ -67,40 +66,18 @@ def instagram_posts_scrapper(request_dict, days=3, range_days=None):
         print('count of input items: ' + str(len(dataset_items)))
         print('-----')
 
-        # Фильтруем только рилсы (type='Video'), которые попадают в целевые сутки (позавчера)
-        for item in dataset_items:
-            if 'type' in item and item['type'] == 'Video':
-                # Парсим время публикации
-                post_time = datetime.strptime(item['timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
-
-                # Проверяем, входит ли пост в диапазон целевых дат
-                if start_of_day <= post_time <= end_of_day:
-                    reelsData.append(item)
-
     except Exception as e:
         print(f"Error processing users: {e}")
     #print(reelsData)
-    return dataset_items, reelsData
+    return dataset_items
 
-def tiktok_posts_scrapper(request_dict, days=3, range_days=None):
+def tiktok_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
     # Загружаем переменные из .env
     load_dotenv()
     # Инициализируем клиента Apify
     APIFY_API = os.getenv('APIFY_API')
     #client = ApifyClient(APIFY_API)
     client = ApifyClient("apify_api_lFnZrkICaOaX60Q7842liFlmDNjbOW1wrnWx")
-
-
-    # Рассчитываем целевые дни
-    target_day = datetime.now() - timedelta(days=days)
-    start_of_day = target_day.date()  # Получаем только дату
-    end_of_day = (target_day + timedelta(days=1)).date()  # Получаем только дату
-
-    # Если указан диапазон дней
-    if range_days:
-        start_range, end_range = map(int, range_days.split('-'))
-        start_of_day = (datetime.now() - timedelta(days=end_range)).date()  # Получаем только дату
-        end_of_day = (datetime.now() - timedelta(days=start_range)).date()  # Получаем только дату
 
     # Извлекаем список username
     usernames = [
@@ -129,7 +106,7 @@ def tiktok_posts_scrapper(request_dict, days=3, range_days=None):
     #print("Локальные переменные:", json.dumps(locals(), default=str, ensure_ascii=False, indent=4))
     #sys.exit()
 
-    reelsData = []
+    
     # Запуск актора и ожидание его завершения
     try:
         run = client.actor("clockworks/free-tiktok-scraper").call(
@@ -141,78 +118,10 @@ def tiktok_posts_scrapper(request_dict, days=3, range_days=None):
         print('count of input items: ' + str(len(dataset_items)))
         print('-----')
 
-        # Фильтруем только рилсы (type='Video'), которые попадают в целевые сутки (позавчера)
-        for item in dataset_items:
-            #if 'type' in item and item['type'] == 'Video':
-            # Парсим время публикации
-            post_time = datetime.strptime(item['createTimeISO'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
-            print(post_time)
-            # Проверяем, входит ли пост в диапазон целевых дат
-            if start_of_day <= post_time <= end_of_day:
-                reelsData.append(item)
-
     except Exception as e:
         print(f"Error processing users: {e}")
     #print(reelsData)
-    return dataset_items, reelsData
-
-#DELETE
-# def instagram_posts_scrapper(request_dict, days=1):
-#     # Загружаем переменные из .env
-#     load_dotenv()
-#     # Initialize the ApifyClient with your API token
-#     # Получаем ключ из переменных окружения
-#     APIFY_API = os.getenv('APIFY_API')
-
-#     # Инициализируем клиента
-#     #client = ApifyClient(APIFY_API)
-#     client = ApifyClient("apify_api_Rt4qBMmDgD2BxrRql5WTzY7I6e8nqu43ICSl")
-
-#     # Получение X дней назад
-#     daysOffset = datetime.now() - timedelta(days=days)
-#     daysOffsetFormate = daysOffset.strftime('%Y-%m-%d')
-
-#     # Функция для получения постов списка из юзеров
-#     #users_list = request_dict.get("users", [])
-
-#     # Извлекаем все username и создаем run_input с объединением всех пользователей
-#     usernames = [
-#         item.get('username') for item in request_dict
-#         if isinstance(item, dict)
-#     ]
-
-#     run_input = {
-#         "username": usernames,
-#         "resultsLimit": 40,
-#         "onlyPostsNewerThan": daysOffsetFormate,
-#         "skipPinnedPosts":
-#         True  # Или True, если нужно пропускать закрепленные посты
-#     }
-#     print("Apify input created: " + str(run_input))
-    
-#     reelsData = []
-#     # Запуск актора и ожидание его завершения
-#     try:
-#         #<last_version>
-#         run = client.actor("apify/instagram-post-scraper").call(
-#             run_input=run_input)
-#         dataset_items = client.dataset(
-#             run["defaultDatasetId"]).list_items().items
-#         #</last_version>
-#         #with open("db/13/potok_theexpertgarden_apify_20241227_174839.json", "r", encoding="utf-8") as file:
-#         #    dataset_items = json.load(file)
-#         # фильтрация только Reels('Video') из набора данных актора
-#         print('--------')
-#         print('count of input items: ' + str(len(dataset_items)))
-#         print('-----')
-#         for item in dataset_items:
-#             if 'type' in item and item['type'] == 'Video':
-#                 reelsData.append(item)
-
-#     except Exception as e:
-#         print(f"Error processing users: {e}")
-#     #print(reelsData)
-#     return reelsData
+    return dataset_items
 
 
 def reels_scrapper(links):
@@ -294,7 +203,17 @@ def tiktok_scrapper(links):
     return raw_data
 
 
-def instagram_scrapper_filter_sorter(reelsData, request_dict):
+def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end_of_day):
+    reelsData = []
+    # Фильтруем только рилсы (type='Video'), которые попадают в целевые сутки (позавчера)
+    for item in dataset_items:
+        #if 'type' in item and item['type'] == 'Video':
+        # Парсим время публикации
+        post_time = datetime.strptime(item['createTimeISO'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
+        print(post_time)
+        # Проверяем, входит ли пост в диапазон целевых дат
+        if start_of_day <= post_time <= end_of_day:
+            reelsData.append(item)
     # Преобразуем request_dict в словарь для быстрого поиска, у меня тут появляется такой массив {'username_1': 2000, 'username_2':34000}
     username_limits = {
         entry['username']: entry['viewsFilter']
@@ -329,9 +248,20 @@ def instagram_scrapper_filter_sorter(reelsData, request_dict):
         )
     print("----------------")
     sortedReelsCount = len(sorted_data)
-    return sorted_data, sortedReelsCount
+    return reelsData, sorted_data, sortedReelsCount
 
-def tiktok_scrapper_filter_sorter(reelsData, request_dict):
+def tiktok_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end_of_day):
+    reelsData = []
+    # Фильтруем только рилсы (type='Video'), которые попадают в целевые сутки (позавчера)
+    for item in dataset_items:
+        #if 'type' in item and item['type'] == 'Video':
+        # Парсим время публикации
+        post_time = datetime.strptime(item['createTimeISO'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
+        print(post_time)
+        # Проверяем, входит ли пост в диапазон целевых дат
+        if start_of_day <= post_time <= end_of_day:
+            reelsData.append(item)
+
     # Преобразуем request_dict в словарь для быстрого поиска, у меня тут появляется такой массив {'username_1': 2000, 'username_2':34000}
     username_limits = {
         entry['username']: entry['viewsFilter']
@@ -366,7 +296,7 @@ def tiktok_scrapper_filter_sorter(reelsData, request_dict):
         )
     print("----------------")
     sortedReelsCount = len(sorted_data)
-    return sorted_data, sortedReelsCount
+    return reelsData, sorted_data, sortedReelsCount
 
 
 def extracted_reels_data_maker(data):
@@ -374,6 +304,8 @@ def extracted_reels_data_maker(data):
     extracted_data = []
     for entry in data:
         try:
+            # Initialize er_followers
+            er_commlike = 0  # Initialize to avoid UnboundLocalError
             # Convert this format 2024-12-08T20:51:49.000Z to this 2024-12-06 00:57:56
             #print(f"time: {entry.get('timestamp')}")
             formatted_timestamp = datetime.strptime(
@@ -390,15 +322,15 @@ def extracted_reels_data_maker(data):
             video_play_count = float(entry.get('videoPlayCount', 1)
                                      or 1)  # Avoid division by zero
             if likes_count != -1:
-                engagement = str(
+                er_commlike = str(
                     round((comments_count + likes_count) / video_play_count,
                           10))
             else:
-                engagement = "-"
+                er_commlike = 0
 
         except (ValueError, TypeError) as e:
             print(f"Error calculating engagement: {e}")
-            engagement = 0
+            er_commlike = 0
 
         extracted_entry = {
             'account_url': entry.get('inputUrl'),
@@ -414,7 +346,7 @@ def extracted_reels_data_maker(data):
             'shareCount': entry.get('shareCount'),
             'videoPlayCount': entry.get('videoPlayCount'),
             'videoDuration': entry.get('videoDuration'),
-            'engagement': engagement
+            'er_commlike': er_commlike
         }
         extracted_data.append(extracted_entry)
 
@@ -426,10 +358,15 @@ def extracted_tiktok_data_maker(data):
     extracted_data = []
     for entry in data:
         try:
+            # Initialize er_followers
+            er_shares = 0  # Initialize to avoid UnboundLocalError
+            er_followers = 0  # Initialize to avoid UnboundLocalError
+
             # Convert ISO 8601 to a normal timestamp
             formatted_timestamp = datetime.strptime(
                 str(entry.get('createTimeISO')),
                 '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
+            followers_count = float(entry.get("authorMeta", {}).get("fans", 0))
             comments_count = float(entry.get('commentCount', 0))
             likes_count = float(entry.get('diggCount', 0))
             video_play_count = float(entry.get('playCount', 1))
@@ -441,17 +378,17 @@ def extracted_tiktok_data_maker(data):
                     round((comments_count + likes_count + collect_count +
                            share_count) / video_play_count, 10))
             else:
-                er_all = "-"
+                er_all = 0
             
             if entry.get('shareCount') != 0 and entry.get('playCount') != 0:
-                er_shares = str( round(( share_count) / video_play_count, 10))
+                er_shares = str( round( share_count / video_play_count, 10))
             else:
-                er_shares = "-"
+                er_shares = 0
             
             if entry["authorMeta"]["fans"] != 0 and entry.get('playCount') != 0:
-                er_followers = str( round(( er_followers) / video_play_count, 10))
+                er_followers = str( round( video_play_count / followers_count , 10))
             else:
-                er_followers = "-"
+                er_followers = 0
 
 
         except (ValueError, TypeError) as e:
@@ -473,7 +410,7 @@ def extracted_tiktok_data_maker(data):
             'collectCount': entry.get('collectCount'),
             'shareCount': entry.get('shareCount'),
             'videoPlayCount': entry.get('playCount'),
-            'videoDuration': entry.get('videoDuration'),
+            'videoDuration': entry["videoMeta"]["duration"],
             'er_all': er_all,
             'er_shares': er_shares,
             'er_followers': er_followers

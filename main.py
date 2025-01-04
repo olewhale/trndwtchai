@@ -75,9 +75,10 @@ if __name__ == "__main__":
     if x == 0:
         print("Скрипт запущен")
         main2.app_run(option="one", account_id=22, range_days="0-14", scraping_type="tiktok")
+        #main2.app_run(option="one", account_id=22, range_days="0-14", scraping_type="instagram")
     elif x == 1:
         print("Скрипт запущен")
-        main2.app_run(option="all", range_days="3-4")
+        main2.app_run(option="all", range_days="3-4", scraping_type="instagram")
     elif x == 2:
         print("Скрипт запущен")
         target_time_str = "20:00"  # Укажите желаемое время запуска в формате ЧЧ:ММ

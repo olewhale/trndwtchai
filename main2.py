@@ -1,7 +1,7 @@
 import time
 from tqdm import tqdm
-import datetime
 import logging
+from datetime import datetime, timedelta
 
 from faster_whisper import WhisperModel
 import os, sys
@@ -57,7 +57,7 @@ def extract_host_from_url(url):
 # Основная функция для скачивания рилсов
 def download_reels(data):
     # Создаем папку с датой
-    now = datetime.datetime.now()
+    now = datetime.now()
     date_time_folder = now.strftime("%Y%m%d")
     save_directory = os.path.join('reels', date_time_folder)
     os.makedirs(save_directory, exist_ok=True)
@@ -136,7 +136,7 @@ def download_reels(data):
 # Основная функция для скачивания 
 def download_tiktok(data):
     # Создаем папку с датой
-    now = datetime.datetime.now()
+    now = datetime.now()
     date_time_folder = now.strftime("%Y%m%d")
     save_directory = f'tiktok/{date_time_folder}'
     os.makedirs(save_directory, exist_ok=True)
@@ -313,11 +313,11 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     start_time = time.time()
     print('process data started')
 
-    debug = 1
+    debug = 0
 
 
     # Генерируем имя файла только один раз
-    now = datetime.datetime.now()
+    now = datetime.now()
     date_time_str = now.strftime("%Y%m%d_%H%M%S")
     save_path = os.path.join('db', str(account['id']))
     os.makedirs(save_path, exist_ok=True)
@@ -338,17 +338,31 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
 
     if debug == 1:
         #<DEBUG>
-        with open("db/manual/tiktok_test.json", "r", encoding="utf-8") as file:
+        with open("db/22/damir_database_20250104_151439.json", "r", encoding="utf-8") as file:
             test_data = json.load(file)
         #</DEBUG>
 
 
     if scheme == 0:
+
+        # Рассчитываем целевые дни
+        target_day = datetime.now() - timedelta(days=days)
+        start_of_day = target_day.date()  # Получаем только дату
+        end_of_day = (target_day + timedelta(days=1)).date()  # Получаем только дату
+        
+        # Если указан диапазон дней
+        if range_days:
+            start_range, end_range = map(int, range_days.split('-'))
+            start_of_day = (datetime.now() - timedelta(days=end_range)).date()  # Получаем только дату
+            end_of_day = (datetime.now() - timedelta(days=start_range)).date()  # Получаем только дату
+
+
+
         if scraping_type == "instagram":
             users_data = ggl.get_table_data_as_json(account, 'DATA')
             if debug == 0:
                 if not users_data and print('No users') is None: return
-                dataset_items, reelsData = apify.instagram_posts_scrapper(users_data, range_days=range_days)
+                dataset_items = apify.instagram_posts_scrapper(users_data, start_of_day, range_days=range_days)
             else:
                 #<DEBUG>
                 reelsData = test_data
@@ -356,8 +370,8 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
             
             if not reelsData and print('No reels data found') is None: return
 
-            sorted_data, sortedReelsCount = apify.instagram_scrapper_filter_sorter(
-                reelsData, users_data)
+            reelsData, sorted_data, sortedReelsCount = apify.instagram_scrapper_filter_sorter(
+                reelsData, users_data, start_of_day, end_of_day)
             if sortedReelsCount == 0 and print('No new reels') is None: return
 
             extracted_data = apify.extracted_reels_data_maker(sorted_data)
@@ -367,17 +381,17 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
             users_data = ggl.get_table_data_as_json(account, 'DATA_TIKTOK')
             if debug == 0:
                 if not users_data and print('No users') is None: return
-                dataset_items, reelsData = apify.tiktok_posts_scrapper(users_data, range_days=range_days)
+                dataset_items = apify.tiktok_posts_scrapper(users_data, start_of_day, range_days=range_days)
             else:
                 #<DEBUG>
-                reelsData = test_data
+                dataset_items = test_data
                 #</DEBUG>
             
-            if not reelsData and print('No reels data found') is None: return
+            if not dataset_items and print('No tiktok data found') is None: return
 
-            sorted_data, sortedReelsCount = apify.tiktok_scrapper_filter_sorter(
-                reelsData, users_data)
-            if sortedReelsCount == 0 and print('No new reels') is None: return
+            reelsData, sorted_data, sortedReelsCount = apify.tiktok_scrapper_filter_sorter(
+                dataset_items, users_data, start_of_day, end_of_day)
+            if sortedReelsCount == 0 and print('No new tiktok') is None: return
 
             extracted_data = apify.extracted_tiktok_data_maker(sorted_data) #TIKTOK
             transcript_data = download_tiktok(extracted_data) #TIKTOK
@@ -428,8 +442,9 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     #Сохраняем apify и apify_database данные в json файл
     with open(save_path_apify, "w", encoding="utf-8") as file:
         json.dump(reelsData, file, ensure_ascii=False, indent=4)
-    with open(save_path_apify_database, "w", encoding="utf-8") as file:
-        json.dump(dataset_items, file, ensure_ascii=False, indent=4)
+    if debug != 1:
+        with open(save_path_apify_database, "w", encoding="utf-8") as file:
+            json.dump(dataset_items, file, ensure_ascii=False, indent=4)
 
 
     output_filename = f"{account['username']}_transcriptions_{date_time_str}.json"

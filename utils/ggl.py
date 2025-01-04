@@ -3,7 +3,7 @@ from fastapi.params import Query
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from dotenv import load_dotenv
-import os, sys
+import os, sys, json
 
 # Загружаем переменные из .env
 load_dotenv()
@@ -96,7 +96,7 @@ def append_data_to_google_sheet_BACKUP(json_results, table_id, list_name, scheme
             if item.get("humor") == 1:
                 humor_notification = '''>>>ВОЗМОЖНО ЮМОР<<<
                 '''
-            original_script = f'''{song_notification}#HOOK
+            original_script = f'''{song_notification}{humor_notification}#HOOK
 {item["original_script"].get("hook", "")}
 
 #CONTENT
@@ -222,7 +222,7 @@ def append_data_to_google_sheet_BACKUP(json_results, table_id, list_name, scheme
                         '',  # used
                     }
             elif scheme == 2:
-                err_shares = item.get("sharesCount", -1) / item.get(
+                er_shares = item.get("sharesCount", -1) / item.get(
                     "likesCount", -1)
                 values = {
                     "A":
@@ -260,7 +260,7 @@ def append_data_to_google_sheet_BACKUP(json_results, table_id, list_name, scheme
                     if item.get("engagement") != "-" else
                     "-",  # engagement shares/plays
                     "Q":
-                    f'=TO_PERCENT({err_shares})',  # engagement
+                    f'=TO_PERCENT({er_shares})',  # engagement
                     "R":
                     '=IF(COUNT(FILTER(K:K, B:B = INDIRECT("B"&ROW()))) = 1, 0, (INDIRECT("K"&ROW()) - MEDIAN(FILTER(K:K, B:B = INDIRECT("B"&ROW())))) / (2 * STDEV(FILTER(K:K, B:B = INDIRECT("B"&ROW())))))',  #virus_detector
                     "S":
@@ -349,6 +349,11 @@ def col_index_to_excel_name(idx_zero_based: int) -> str:
 #  - name2idx   : словарь { "имя_столбца" -> индекс }, чтобы можно было
 #                 сослаться на другие колонки
 
+song_string = '''>>>ВОЗМОЖНО ПЕСНЯ<<<
+'''
+humor_string = '''>>>ВОЗМОЖНО ЮМОР<<<
+'''
+
 COLUMNS_CONFIG = {
     (0, "instagram"): [
         {
@@ -393,7 +398,7 @@ COLUMNS_CONFIG = {
                 f'=len(INDIRECT("{col_index_to_excel_name(name2idx["caption"])}"&ROW()))'
         },
         {
-            "name": "playCount",
+            "name": "views",
             "value_func": lambda item, row_n, i2excel, name2idx: item.get("videoPlayCount", "")
         },
         {
@@ -405,20 +410,17 @@ COLUMNS_CONFIG = {
             "value_func": lambda item, row_n, i2excel, name2idx: item.get("commentsCount", "")
         },
         {
-            "name": "engagement",
+            "name": "er_commlike",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=TO_PERCENT({item.get("engagement", "-")})'
-                if item.get("engagement") != "-"
+                f'=TO_PERCENT({item.get("er_commlike", "-")})'
+                if item.get("er_commlike") != "-"
                 else "-"
             )
         },
         {
             "name": "virus_detector",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                '=IF(COUNT(FILTER(K:K, B:B = INDIRECT("B"&ROW()))) = 1, '
-                '0, '
-                '(INDIRECT("K"&ROW()) - MEDIAN(FILTER(K:K, B:B = INDIRECT("B"&ROW())))) '
-                '/ (2 * STDEV(FILTER(K:K, B:B = INDIRECT("B"&ROW())))))'
+                f'=IF(COUNT(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))) / (2 * STDEV(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))))'
             )
         },
         {
@@ -440,7 +442,7 @@ COLUMNS_CONFIG = {
             "name": "original_script",
             "value_func": lambda item, row_n, i2excel, name2idx: (
                 # Прямо здесь формируем текст
-                f'''{">>>ВОЗМОЖНО ПЕСНЯ<<<\n" if item.get("song") else ""}#HOOK
+                f'''{song_string if item.get("song") else ""}{humor_string if item.get("humor") else ""}#HOOK
 {item["original_script"].get("hook", "")}
 
 #CONTENT
@@ -456,8 +458,8 @@ COLUMNS_CONFIG = {
         {
             "name": "rewrited_script",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'''{">>>ВОЗМОЖНО ПЕСНЯ<<<\n" if item.get("song") else ""}{">>>ВОЗМОЖНО ЮМОР<<<\n" if item.get("humor") else ""}#HOOK
-{item["rewrited_script"].get("hook", "")}
+                f'''{song_string if item.get("song") else ""}{humor_string if item.get("humor") else ""}#HOOK
+{item["original_script"].get("hook", "")}
 
 #CONTENT
 {item["rewrited_script"].get("content", "")}
@@ -468,19 +470,7 @@ COLUMNS_CONFIG = {
 #CAPTION
 {item["rewrited_script"].get("caption", "")}'''
             )
-        },
-        {
-            "name": "adapted_script",
-            "value_func": lambda item, row_n, i2excel, name2idx: ""
-        },
-        {
-            "name": "storyboard",
-            "value_func": lambda item, row_n, i2excel, name2idx: ""
-        },
-        {
-            "name": "used",
-            "value_func": lambda item, row_n, i2excel, name2idx: ""
-        },
+        }
     ],
 
     (0, "tiktok"): [
@@ -534,7 +524,7 @@ COLUMNS_CONFIG = {
             "name": "er_followers",
             "value_func": lambda item, row_n, i2excel, name2idx: (
                 f'=TO_PERCENT({item.get("er_followers", "-")})'
-                if item.get("er_followers") != "-"
+                if item.get("er_followers") != 0
                 else "-"
             )
         },
@@ -557,8 +547,8 @@ COLUMNS_CONFIG = {
         {
             "name": "er_all",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=TO_PERCENT({item.get("err_all", "-")})'
-                if item.get("er_all") != "-"
+                f'=TO_PERCENT({item.get("er_all", "-")})'
+                if item.get("er_all") != 0
                 else "-"
             )
         },
@@ -566,14 +556,14 @@ COLUMNS_CONFIG = {
             "name": "er_shares",
             "value_func": lambda item, row_n, i2excel, name2idx: (
                 f'=TO_PERCENT({item.get("er_shares", "-")})'
-                if item.get("er_shares") != "-"
+                if item.get("er_shares") != 0
                 else "-"
             )
         },
         {
             "name": "virus_detector",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=IF(COUNT(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW())))) / (2 * STDEV(FILTER({col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])}, {col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])} = INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW())))))'
+                f'=IF(COUNT(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))) / (2 * STDEV(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))))'
             )
         },
         {
@@ -583,7 +573,7 @@ COLUMNS_CONFIG = {
         {
             "name": "original_script",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'''{">>>ВОЗМОЖНО ПЕСНЯ<<<\n" if item.get("song") else ""}#HOOK
+                f'''{song_string if item.get("song") else ""}{humor_string if item.get("humor") else ""}#HOOK
 {item["original_script"].get("hook", "")}
 
 #CONTENT
@@ -599,8 +589,8 @@ COLUMNS_CONFIG = {
         {
             "name": "rewrited_script",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'''{">>>ВОЗМОЖНО ПЕСНЯ<<<\n" if item.get("song") else ""}{">>>ВОЗМОЖНО ЮМОР<<<\n" if item.get("humor") else ""}#HOOK
-{item["rewrited_script"].get("hook", "")}
+                f'''{song_string if item.get("song") else ""}{humor_string if item.get("humor") else ""}#HOOK
+{item["original_script"].get("hook", "")}
 
 #CONTENT
 {item["rewrited_script"].get("content", "")}
@@ -689,3 +679,14 @@ def append_data_to_google_sheet(json_results, table_id, list_name, scheme=0, scr
         print(f"Ошибка в процессе обработки в ggl: {e}")
 
     print("Done!")
+
+
+
+############################
+# DEBUG
+############################
+'''
+with open("db/22/damir_result_20250104_151517.json", "r", encoding="utf-8") as file:
+    results = json.load(file)
+append_data_to_google_sheet(results, "1uXEWHBW2aNChgtR9mB4JOV-fpTZS83i_oMT_Ar-vtJo", 'TIKTOK', scraping_type="tiktok")
+'''
