@@ -104,7 +104,7 @@ def tiktok_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
     }
     '''
     run_input = {
-        "maxItems": 100,
+        "maxItems": 5000,
         "until": start_of_day.strftime('%Y-%m-%d'),
         "usernames": usernames
     }
