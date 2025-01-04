@@ -309,11 +309,11 @@ def insert_transcription(extracted_data, output_data):
 
 
 
-def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_type = "instagram"):
+def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_type = "instagram"):
     start_time = time.time()
     print('process data started')
 
-    debug = 0
+    debug = 1
 
 
     # Генерируем имя файла только один раз
@@ -321,6 +321,13 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
     date_time_str = now.strftime("%Y%m%d_%H%M%S")
     save_path = os.path.join('db', str(account['id']))
     os.makedirs(save_path, exist_ok=True)
+
+
+    '''
+    *
+    01 - SCRAPING
+    *
+    '''
 
     output_apify_filename = f"{account['username']}_apify_{date_time_str}.json"
     output_database_filename = f"{account['username']}_database_{date_time_str}.json"
@@ -337,7 +344,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
 
 
     if scheme == 0:
-        if scraper_type == "instagram":
+        if scraping_type == "instagram":
             users_data = ggl.get_table_data_as_json(account, 'DATA')
             if debug == 0:
                 if not users_data and print('No users') is None: return
@@ -352,7 +359,11 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
             sorted_data, sortedReelsCount = apify.instagram_scrapper_filter_sorter(
                 reelsData, users_data)
             if sortedReelsCount == 0 and print('No new reels') is None: return
-        elif scraper_type == "tiktok":
+
+            extracted_data = apify.extracted_reels_data_maker(sorted_data)
+            transcript_data = download_reels(extracted_data)
+
+        elif scraping_type == "tiktok":
             users_data = ggl.get_table_data_as_json(account, 'DATA_TIKTOK')
             if debug == 0:
                 if not users_data and print('No users') is None: return
@@ -367,6 +378,9 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
             sorted_data, sortedReelsCount = apify.tiktok_scrapper_filter_sorter(
                 reelsData, users_data)
             if sortedReelsCount == 0 and print('No new reels') is None: return
+
+            extracted_data = apify.extracted_tiktok_data_maker(sorted_data) #TIKTOK
+            transcript_data = download_tiktok(extracted_data) #TIKTOK
         
 
     elif scheme == 1:
@@ -376,6 +390,8 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
         if not reelsData and print('No reels data found') is None: return
 
         sorted_data = reelsData
+        extracted_data = apify.extracted_reels_data_maker(sorted_data)
+        transcript_data = download_reels(extracted_data)
 
     elif scheme == 2:
         account['username'] = account.get('username') + "_saves"
@@ -384,7 +400,12 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
         if not reelsData and print('No reels data found') is None: return
 
         sorted_data = reelsData
+        extracted_data = apify.extracted_tiktok_data_maker(sorted_data) #TIKTOK
+        transcript_data = download_tiktok(extracted_data) #TIKTOK
 
+    if debug == 1:
+        print(json.dumps(extracted_data, ensure_ascii=False, indent=4))
+        print("Done")
     
     '''
     ###TEST_ZONE Помогает использовать уже полученный json файл от apify. Не забудь убрать reelsData в комментинг
@@ -410,30 +431,6 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
     with open(save_path_apify_database, "w", encoding="utf-8") as file:
         json.dump(dataset_items, file, ensure_ascii=False, indent=4)
 
-    
-    if scheme == 0:
-        if scraper_type == "instagram":
-            extracted_data = apify.extracted_reels_data_maker(sorted_data)
-            transcript_data = download_reels(extracted_data)
-        elif scraper_type == "tiktok":
-            # PUT HERE FUNCTIONS FOR TIKTOK
-            print("hello")
-            # PUT HERE FUNCTIONS FOR TIKTOK
-    elif scheme == 1:
-        extracted_data = apify.extracted_reels_data_maker(sorted_data)
-        transcript_data = download_reels(extracted_data)
-    elif scheme == 2:
-        extracted_data = apify.extracted_tiktok_data_maker(sorted_data)
-        transcript_data = download_tiktok(extracted_data)
-    '''
-    deb = True
-    if deb:
-        print(json.dumps(extracted_data, ensure_ascii=False, indent=4))
-        print("Done")
-        return
-    '''
-
-    #return None
 
     output_filename = f"{account['username']}_transcriptions_{date_time_str}.json"
     save_path_transcript = os.path.join('db', str(account['id']),
@@ -442,6 +439,13 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
     #Сохраняем пустой файл
     with open(save_path_transcript, "w", encoding="utf-8") as file:
         json.dump("", file, ensure_ascii=False, indent=4)
+
+
+    '''
+    *
+    02 - TRANSCRIPTION
+    *
+    '''
 
     # Инициализируем модель один раз
     #model_size types - 'tiny', 'base', 'small', 'medium', 'large'
@@ -481,13 +485,29 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
     result_filename = f"{account['username']}_result_{date_time_str}.json"
     save_path_result = os.path.join('db', str(account['id']), result_filename)
 
-    #SHARES SECTION START HERE
-    #result_filename, save_path_result нужны для предосторожности. Если много рилсов, у которых нужно сохранить репосты, то мы периодически сохраняем количество репостов у рилсов в финальный файл, чтобы, если возникнет ошибка, у нас сохранились данные
-    try:
-        results = sh.execute_shares_scraping(results, result_filename, save_path_result)
-    except Exception as e:
-        print(f"Ошибка в процессе получения репостов: {e}")
 
+
+    '''
+    *
+    03 - GET SHARES
+    *
+    '''
+
+
+    if scraping_type == "instagram":
+        #SHARES SECTION START HERE
+        #result_filename, save_path_result нужны для предосторожности. Если много рилсов, у которых нужно сохранить репосты, то мы периодически сохраняем количество репостов у рилсов в финальный файл, чтобы, если возникнет ошибка, у нас сохранились данные
+        try:
+            results = sh.execute_shares_scraping(results, result_filename, save_path_result)
+        except Exception as e:
+            print(f"Ошибка в процессе получения репостов: {e}")
+
+
+    '''
+    *
+    04 - OPENAI_ORIGINAL
+    *
+    '''
 
     for index, item in tqdm(enumerate(results, start=1), total=len(results), desc="Process spez_original:", unit="reel"):
         spez_common_answer = {}
@@ -541,7 +561,11 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
                 continue
             print(f"No transcription found for item {item.get('shortCode')}")
 
-
+    '''
+    *
+    05 - OPENAI_REWRITE
+    *
+    '''
 
     #make a file
     os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
@@ -617,10 +641,23 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_t
     #print(results)
     #json_results = json.dumps(results, indent=4) # эта строка преобразует список в json строку
 
+    '''
+    *
+    06 - WRITE DATA TO GOOGLE SHEET
+    *
+    '''
+
     try:
         if scheme == 0:
-            ggl.append_data_to_google_sheet(results, account["table_id"],
-                                            'INSTAGRAM')
+            if scraping_type == "instagram":
+                ggl.append_data_to_google_sheet(results, account["table_id"],
+                                            'INSTAGRAM', scraping_type=scraping_type)
+            elif scraping_type == "tiktok":
+                ggl.append_data_to_google_sheet(results, account["table_id"],
+                                            'TIKTOK', scraping_type=scraping_type)
+            else:
+                print("ERROR Wrong scraping type variable")
+
         elif scheme == 1:
             ggl.append_data_to_google_sheet(results, account["table_id"],
                                             'INSTAGRAM_SAVED')
@@ -821,14 +858,14 @@ def process_data_onlyspez(account, days=2, links=[], scheme=0):
 
 
 
-def app_run(option="all", account_id=0, range_days="3-3", scraper_type="instagram"):
+def app_run(option="all", account_id=0, range_days="3-3", scraping_type="instagram"):
     logger.info("------APP IS RUNNING------")
     with open("db/main/db.json", "r", encoding="utf-8") as file:
         table_list = json.load(file)
 
     switcher = option  # This should be set appropriately as per your context
     if switcher == "one":
-        process_data(table_list["accounts"][account_id], range_days=range_days, scheme=0, scraper_type=scraper_type)
+        process_data(table_list["accounts"][account_id], range_days=range_days, scheme=0, scraping_type=scraping_type)
         #process_data_onlyspez(table_list["accounts"][account_id], days=day_for_one, scheme=0)
 
     elif switcher == "all":

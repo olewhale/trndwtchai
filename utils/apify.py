@@ -437,15 +437,26 @@ def extracted_tiktok_data_maker(data):
             share_count = float(entry.get('shareCount', 0))
 
             if likes_count != -1:
-                engagement = str(
+                er_all = str(
                     round((comments_count + likes_count + collect_count +
                            share_count) / video_play_count, 10))
             else:
-                engagement = "-"
+                er_all = "-"
+            
+            if entry.get('shareCount') != 0 and entry.get('playCount') != 0:
+                er_shares = str( round(( share_count) / video_play_count, 10))
+            else:
+                er_shares = "-"
+            
+            if entry["authorMeta"]["fans"] != 0 and entry.get('playCount') != 0:
+                er_followers = str( round(( er_followers) / video_play_count, 10))
+            else:
+                er_followers = "-"
+
 
         except (ValueError, TypeError) as e:
             print(f"Error calculating engagement: {e}")
-            engagement = 0
+            er_all = 0
 
         extracted_entry = {
             'account_url': entry["authorMeta"]["profileUrl"],
@@ -456,13 +467,16 @@ def extracted_tiktok_data_maker(data):
             entry.get('mediaUrls')[0] if entry.get('mediaUrls') else None,
             'shortCode': entry.get('id'),
             'caption': entry.get('text'),
+            'followersCount': entry["authorMeta"]["fans"],
             'commentsCount': entry.get('commentCount'),
             'likesCount': entry.get('diggCount'),
             'collectCount': entry.get('collectCount'),
             'shareCount': entry.get('shareCount'),
             'videoPlayCount': entry.get('playCount'),
             'videoDuration': entry.get('videoDuration'),
-            'engagement': engagement
+            'er_all': er_all,
+            'er_shares': er_shares,
+            'er_followers': er_followers
         }
         extracted_data.append(extracted_entry)
 
