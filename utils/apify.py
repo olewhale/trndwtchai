@@ -379,19 +379,18 @@ def extracted_tiktok_data_maker(data):
                 str(entry.get('uploadedAtFormatted')),
                 '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
             followers_count = float(entry.get("channel", {}).get("followers", 0))
-            print('followers_count')
             comments_count = float(entry.get('comments', 0))
-            print('comments_count')
             likes_count = float(entry.get('likes', 0))
-            print('likes_count')
             video_play_count = float(entry.get('views', 1))
-            print('video_play_count')
             collect_count = float(entry.get('bookmarks', 0))
-            print('collect_count')
             share_count = float(entry.get('shares', 0))
-            print('share_count')
             duration = entry.get("video", {}).get("duration", 0)
-            print('duration')
+            
+            if entry["video"]["duration"] is not None:
+                duration = entry.get("video", {}).get("duration", 0)
+            else:
+                duration = "NoVideo"
+
 
             if likes_count != -1:
                 er_all = str(

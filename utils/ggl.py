@@ -459,7 +459,7 @@ COLUMNS_CONFIG = {
             "name": "rewrited_script",
             "value_func": lambda item, row_n, i2excel, name2idx: (
                 f'''{song_string if item.get("song") else ""}{humor_string if item.get("humor") else ""}#HOOK
-{item["original_script"].get("hook", "")}
+{item["rewrited_script"].get("hook", "")}
 
 #CONTENT
 {item["rewrited_script"].get("content", "")}
@@ -578,7 +578,7 @@ COLUMNS_CONFIG = {
             "name": "rewrited_script",
             "value_func": lambda item, row_n, i2excel, name2idx: (
                 f'''{song_string if item.get("song") else ""}{humor_string if item.get("humor") else ""}#HOOK
-{item["original_script"].get("hook", "")}
+{item["rewrited_script"].get("hook", "")}
 
 #CONTENT
 {item["rewrited_script"].get("content", "")}
