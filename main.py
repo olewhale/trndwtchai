@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     if x == 0:
         print("Скрипт запущен")
-        main2.app_run(option="one", account_id=21, range_days="0-14")
+        main2.app_run(option="one", account_id=22, range_days="0-14", scraper_type="instagram")
     elif x == 1:
         print("Скрипт запущен")
         main2.app_run(option="all", range_days="3-4")

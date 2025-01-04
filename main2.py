@@ -133,7 +133,7 @@ def download_reels(data):
     return reel_data
 
 
-# Основная функция для скачивания рилсов
+# Основная функция для скачивания 
 def download_tiktok(data):
     # Создаем папку с датой
     now = datetime.datetime.now()
@@ -309,7 +309,7 @@ def insert_transcription(extracted_data, output_data):
 
 
 
-def process_data(account, days=3, links=[], scheme=0, range_days=None):
+def process_data(account, days=3, links=[], scheme=0, range_days=None, scraper_type = "instagram"):
     start_time = time.time()
     print('process data started')
 
@@ -331,27 +331,43 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None):
 
     if debug == 1:
         #<DEBUG>
-        with open("db/20/kumar&solo_apify_20241230_173736.json", "r", encoding="utf-8") as file:
+        with open("db/manual/tiktok_test.json", "r", encoding="utf-8") as file:
             test_data = json.load(file)
         #</DEBUG>
 
 
     if scheme == 0:
-        users_data = ggl.get_table_data_as_json(account, 'DATA')
-        if debug == 0:
-            if not users_data and print('No users') is None: return
-            dataset_items, reelsData = apify.instagram_posts_scrapper(users_data, range_days=range_days)
+        if scraper_type == "instagram":
+            users_data = ggl.get_table_data_as_json(account, 'DATA')
+            if debug == 0:
+                if not users_data and print('No users') is None: return
+                dataset_items, reelsData = apify.instagram_posts_scrapper(users_data, range_days=range_days)
+            else:
+                #<DEBUG>
+                reelsData = test_data
+                #</DEBUG>
+            
+            if not reelsData and print('No reels data found') is None: return
 
-        else:
-            #<DEBUG>
-            reelsData = test_data
-            #</DEBUG>
+            sorted_data, sortedReelsCount = apify.instagram_scrapper_filter_sorter(
+                reelsData, users_data)
+            if sortedReelsCount == 0 and print('No new reels') is None: return
+        elif scraper_type == "tiktok":
+            users_data = ggl.get_table_data_as_json(account, 'DATA_TIKTOK')
+            if debug == 0:
+                if not users_data and print('No users') is None: return
+                dataset_items, reelsData = apify.tiktok_posts_scrapper(users_data, range_days=range_days)
+            else:
+                #<DEBUG>
+                reelsData = test_data
+                #</DEBUG>
+            
+            if not reelsData and print('No reels data found') is None: return
+
+            sorted_data, sortedReelsCount = apify.tiktok_scrapper_filter_sorter(
+                reelsData, users_data)
+            if sortedReelsCount == 0 and print('No new reels') is None: return
         
-        if not reelsData and print('No reels data found') is None: return
-
-        sorted_data, sortedReelsCount = apify.instagram_scrapper_filter_sorter(
-            reelsData, users_data)
-        if sortedReelsCount == 0 and print('No new reels') is None: return
 
     elif scheme == 1:
         account['username'] = account.get('username') + "_saves"
@@ -368,6 +384,8 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None):
         if not reelsData and print('No reels data found') is None: return
 
         sorted_data = reelsData
+
+    
     '''
     ###TEST_ZONE Помогает использовать уже полученный json файл от apify. Не забудь убрать reelsData в комментинг
     ###TEST_ZONE
@@ -394,8 +412,13 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None):
 
     
     if scheme == 0:
-        extracted_data = apify.extracted_reels_data_maker(sorted_data)
-        transcript_data = download_reels(extracted_data)
+        if scraper_type == "instagram":
+            extracted_data = apify.extracted_reels_data_maker(sorted_data)
+            transcript_data = download_reels(extracted_data)
+        elif scraper_type == "tiktok":
+            # PUT HERE FUNCTIONS FOR TIKTOK
+            print("hello")
+            # PUT HERE FUNCTIONS FOR TIKTOK
     elif scheme == 1:
         extracted_data = apify.extracted_reels_data_maker(sorted_data)
         transcript_data = download_reels(extracted_data)
@@ -798,14 +821,14 @@ def process_data_onlyspez(account, days=2, links=[], scheme=0):
 
 
 
-def app_run(option="all", account_id=0, range_days="3-3"):
+def app_run(option="all", account_id=0, range_days="3-3", scraper_type="instagram"):
     logger.info("------APP IS RUNNING------")
     with open("db/main/db.json", "r", encoding="utf-8") as file:
         table_list = json.load(file)
 
     switcher = option  # This should be set appropriately as per your context
     if switcher == "one":
-        process_data(table_list["accounts"][account_id], range_days=range_days, scheme=0)
+        process_data(table_list["accounts"][account_id], range_days=range_days, scheme=0, scraper_type=scraper_type)
         #process_data_onlyspez(table_list["accounts"][account_id], days=day_for_one, scheme=0)
 
     elif switcher == "all":

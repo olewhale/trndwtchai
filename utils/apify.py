@@ -82,6 +82,80 @@ def instagram_posts_scrapper(request_dict, days=3, range_days=None):
     #print(reelsData)
     return dataset_items, reelsData
 
+def tiktok_posts_scrapper(request_dict, days=3, range_days=None):
+    # Загружаем переменные из .env
+    load_dotenv()
+    # Инициализируем клиента Apify
+    APIFY_API = os.getenv('APIFY_API')
+    #client = ApifyClient(APIFY_API)
+    client = ApifyClient("apify_api_lFnZrkICaOaX60Q7842liFlmDNjbOW1wrnWx")
+
+
+    # Рассчитываем целевые дни
+    target_day = datetime.now() - timedelta(days=days)
+    start_of_day = target_day.date()  # Получаем только дату
+    end_of_day = (target_day + timedelta(days=1)).date()  # Получаем только дату
+
+    # Если указан диапазон дней
+    if range_days:
+        start_range, end_range = map(int, range_days.split('-'))
+        start_of_day = (datetime.now() - timedelta(days=end_range)).date()  # Получаем только дату
+        end_of_day = (datetime.now() - timedelta(days=start_range)).date()  # Получаем только дату
+
+    # Извлекаем список username
+    usernames = [
+        item.get('username') for item in request_dict
+        if isinstance(item, dict)
+    ]
+
+    run_input = {
+        "excludePinnedPosts": True,
+        "oldestPostDate": start_of_day.strftime('%Y-%m-%d'),
+        "profiles": usernames,
+        "resultsPerPage": 100,
+        "shouldDownloadCovers": False,
+        "shouldDownloadSlideshowImages": False,
+        "shouldDownloadSubtitles": False,
+        "shouldDownloadVideos": True,
+        "profileScrapeSections": [
+            "videos"
+        ],
+        "profileSorting": "latest",
+        "searchSection": "",
+        "maxProfilesPerQuery": 10
+    }
+    print("Apify input created: " + str(run_input))
+    
+    #print("Локальные переменные:", json.dumps(locals(), default=str, ensure_ascii=False, indent=4))
+    #sys.exit()
+
+    reelsData = []
+    # Запуск актора и ожидание его завершения
+    try:
+        run = client.actor("clockworks/free-tiktok-scraper").call(
+            run_input=run_input)
+        dataset_items = client.dataset(
+            run["defaultDatasetId"]).list_items().items
+        
+        print('--------')
+        print('count of input items: ' + str(len(dataset_items)))
+        print('-----')
+
+        # Фильтруем только рилсы (type='Video'), которые попадают в целевые сутки (позавчера)
+        for item in dataset_items:
+            #if 'type' in item and item['type'] == 'Video':
+            # Парсим время публикации
+            post_time = datetime.strptime(item['createTimeISO'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
+            print(post_time)
+            # Проверяем, входит ли пост в диапазон целевых дат
+            if start_of_day <= post_time <= end_of_day:
+                reelsData.append(item)
+
+    except Exception as e:
+        print(f"Error processing users: {e}")
+    #print(reelsData)
+    return dataset_items, reelsData
+
 #DELETE
 # def instagram_posts_scrapper(request_dict, days=1):
 #     # Загружаем переменные из .env
@@ -252,6 +326,43 @@ def instagram_scrapper_filter_sorter(reelsData, request_dict):
     for item in sorted_data:
         print(
             f'username: {item["ownerUsername"]}, shortcode: {item["shortCode"]}, views: {item["videoPlayCount"]}, timestamp: {item.get("timestamp", "N/A")}'  # Используем "N/A" если timestamp отсутствует
+        )
+    print("----------------")
+    sortedReelsCount = len(sorted_data)
+    return sorted_data, sortedReelsCount
+
+def tiktok_scrapper_filter_sorter(reelsData, request_dict):
+    # Преобразуем request_dict в словарь для быстрого поиска, у меня тут появляется такой массив {'username_1': 2000, 'username_2':34000}
+    username_limits = {
+        entry['username']: entry['viewsFilter']
+        for entry in request_dict
+    }
+
+    # Фильтруем рилсы
+    filtered_reels = [
+        reel for reel in reelsData
+        if (reel['webVideoUrl'].split('@')[1].split('/')[0] in username_limits and 
+            reel['playCount'] >= username_limits[reel['webVideoUrl'].split('@')[1].split('/')[0]])
+    ]
+
+    # Сортировка только по 'timestamp'
+    sorted_data = sorted(
+        filtered_reels,
+        key=lambda x: (
+            x.get('createTimeISO', 0)  # Используем 0 в качестве значения по умолчанию для timestamp, если он отсутствует
+        )
+    )
+
+    # Выводим количество исходных и отфильтрованных рилсов
+    print("----------------")
+    print(f'count of input tiktok: {len(reelsData)}')
+    print(f'count of filtered tiktok: {len(sorted_data)}')
+    print("----------------")
+
+    #Просто выписываем какие рилсы мы взяли и с каким количеством просмотров
+    for item in sorted_data:
+        print(
+            f'username: {item["authorMeta"]["name"]}, shortcode: {item["id"]}, views: {item["playCount"]}, timestamp: {item.get("createTimeISO", "N/A")}'  # Используем "N/A" если timestamp отсутствует
         )
     print("----------------")
     sortedReelsCount = len(sorted_data)
