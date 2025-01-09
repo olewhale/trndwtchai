@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     x = 1
 
-    if x == 0:5
+    if x == 0:
         print("Скрипт запущен")
         #main2.app_run(option="one", account_id=23, range_days="0-15", scraping_type="tiktok")
         #main2.app_run(option="one", account_id=24, range_days="0-15", scraping_type="instagram")
