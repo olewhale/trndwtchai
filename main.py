@@ -70,12 +70,15 @@ def schedule_app_run(target_time_str, option="all"):
 
 
 if __name__ == "__main__":
-    x = 0
 
-    if x == 0:
+
+    x = 1
+
+    if x == 0:5
         print("Скрипт запущен")
-        #main2.app_run(option="one", account_id=23, range_days="0-18", scraping_type="tiktok")
-        main2.app_run(option="one", account_id=23, range_days="0-15", scraping_type="instagram")
+        #main2.app_run(option="one", account_id=23, range_days="0-15", scraping_type="tiktok")
+        #main2.app_run(option="one", account_id=24, range_days="0-15", scraping_type="instagram")
+        main2.app_run(option="one", account_id=0, range_days="-34", scraping_type="instagram")
     elif x == 1:
         print("Скрипт запущен")
         main2.app_run(option="all", range_days="3-4", scraping_type="instagram")

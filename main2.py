@@ -313,8 +313,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     start_time = time.time()
     print('process data started')
 
-    debug = 1
-
+    debug = 0
 
     # Генерируем имя файла только один раз
     now = datetime.now()
@@ -338,7 +337,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
 
     if debug == 1:
         #<DEBUG>
-        with open("db/23/olya_combined_data.json", "r", encoding="utf-8") as file:
+        with open("db/25/potok_noname_apify_20250107_162255.json", "r", encoding="utf-8") as file:
             test_data = json.load(file)
         #</DEBUG>
 
