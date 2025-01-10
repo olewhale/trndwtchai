@@ -449,7 +449,6 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     02 - TRANSCRIPTION
     *
     '''
-    sys.exit()
 
     output_filename = f"{account['username']}_transcriptions_{date_time_str}.json"
     save_path_transcript = os.path.join('db', str(account['id']),
