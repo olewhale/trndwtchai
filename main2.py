@@ -313,7 +313,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     start_time = time.time()
     print('process data started')
 
-    debug = 1
+    debug = 0
 
     # Генерируем имя файла только один раз
     now = datetime.now()
