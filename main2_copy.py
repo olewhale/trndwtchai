@@ -15,7 +15,7 @@ import requests
 #from fastapi.responses import HTMLResponse
 #
 '''
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 import utils.apify as apify
 import utils.prompts as gpt
@@ -57,7 +57,7 @@ def extract_host_from_url(url):
 
 def attempt_download(video_url, save_path):
     """
-    Общая функция для скачивания одного файла по ссылке `video_url`.
+    Функция для скачивания одного видеофайла по переданному URL.
     Возвращает True, если скачано успешно, иначе False.
     """
     try:
@@ -67,7 +67,6 @@ def attempt_download(video_url, save_path):
                 for chunk in response.iter_content(chunk_size=256*1024):
                     if chunk:
                         video_file.write(chunk)
-            # print(f"Видео файл сохранен: {save_path}")
             return True
         else:
             print(f"Ошибка загрузки {video_url}: {response.status_code}")
@@ -76,47 +75,43 @@ def attempt_download(video_url, save_path):
         print(f"Ошибка при загрузке {video_url}: {e}")
         return False
 
-def download_single_video(item, save_directory, scraping_type, host_list=None):
+def download_single_reel(item, host_list, save_directory):
     """
-    Универсальная функция скачивания ОДНОГО видео для Instagram или TikTok.
-
-    Параметры:
-      - item: dict с полями 'shortCode', 'videoUrl'
-      - save_directory: путь к папке для сохранения
-      - scraping_type: 'instagram' / 'tiktok'
-      - host_list: список fallback-хостов (только для instagram)
-    
-    Возвращает (shortCode, reel_info) или (shortCode, None)
+    Обрабатывает ЗА ОДИН reel (один элемент из data).
+    Попытка скачать:
+      - сначала по оригинальной ссылке,
+      - при неудаче — перебор fallback-хостов.
+    Возвращает кортеж (shortCode, {...}) при успехе, иначе (shortCode, None).
     """
     shortCode = item.get('shortCode')
     original_url = item.get('videoUrl')
-    if not (shortCode and original_url):
-        return (shortCode, None)
 
     video_file_name = f'{shortCode}.mp4'
-    file_path = os.path.join(save_directory, video_file_name)
+    file_path = os.path.join(save_directory, video_file_name).replace("\\", "/")
+    
+    # 1. Пытаемся скачать по оригинальной ссылке
+    success = attempt_download(original_url, file_path)
 
-    if scraping_type == "instagram":
-        # 1) Пробуем скачать по оригинальной ссылке
-        success = attempt_download(original_url, file_path)
+    # 2. Если не удалось, пробуем другие хосты
+    if not success:
+        original_host = extract_host_from_url(original_url)
+        # Получаем часть URL после хоста (path+query)
+        url_parts = original_url.split(original_host, maxsplit=1)
+        if len(url_parts) > 1:
+            url_path = url_parts[1]
+        else:
+            url_path = ""
 
-        # 2) Если неудача — пробуем fallback-хосты
-        if not success and host_list:
-            original_host = extract_host_from_url(original_url)
-            url_parts = original_url.split(original_host, maxsplit=1)
-            url_path = url_parts[1] if len(url_parts) > 1 else ""
-
-            for host in host_list:
-                if host != original_host:
-                    modified_url = f"https://{host}{url_path}"
-                    success = attempt_download(modified_url, file_path)
-                    if success:
-                        break
-    else:
-        # Для TikTok — просто одна попытка скачать
-        success = attempt_download(original_url, file_path)
+        for host in host_list:
+            if host != original_host:
+                modified_url = f"https://{host}{url_path}"
+                # print(f"Пробуем другой хост: {modified_url[:30]}")
+                success = attempt_download(modified_url, file_path)
+                if success:
+                    break
 
     if success:
+        # Собираем структуру, аналогичную тому, что у вас было
         reel_info = {
             "video_path": file_path,
             "audio_path": None,
@@ -127,62 +122,102 @@ def download_single_video(item, save_directory, scraping_type, host_list=None):
         print(f"Не удалось скачать видео для шорткода: {shortCode}")
         return (shortCode, None)
 
-def download_videos(data, scraping_type):
+def download_reels(data):
     """
-    Универсальная функция для скачивания видео (Reels/TikTok), 
-    в зависимости от scraping_type.
-
-    Аргументы:
-     - data: список элементов (dict), каждый должен содержать 'shortCode' и 'videoUrl'
-     - scraping_type: "instagram" или "tiktok"
-
-    Возвращает dict: { shortCode: { "video_path": ..., "audio_path": ..., "transcription": ... }, ... }
+    ПАРАЛЛЕЛЬНО загружает Reels, возвращает словарь вида:
+    { shortCode: { "video_path": ..., "audio_path": ..., "transcription": ... }, ... }
     """
     # 1. Создаём папку с датой
     now = datetime.now()
     date_time_folder = now.strftime("%Y%m%d")
-
-    # Для наглядности: разные папки для IG vs TikTok
-    # Можно сделать единый корень "videos" / date_time_folder, но 
-    # обычно хочется разделять, чтобы не смешивать файлы.
-    if scraping_type == "instagram":
-        base_folder = "reels"
-    elif scraping_type == "tiktok":
-        base_folder = "tiktok"
-    else:
-        base_folder = "other"
-
-    save_directory = os.path.join(base_folder, date_time_folder)
+    save_directory = os.path.join('reels', date_time_folder)
     os.makedirs(save_directory, exist_ok=True)
 
-    # 2. Собираем host_list (только для Instagram)
+    # 2. Список всех уникальных хостов
     host_list = []
-    if scraping_type == "instagram":
-        for item in data:
-            host = extract_host_from_url(item.get('videoUrl'))
-            if host not in host_list and host is not None:
-                host_list.append(host)
+    for item in data:
+        host = extract_host_from_url(item.get('videoUrl'))
+        if host not in host_list:
+            host_list.append(host)
 
-    # 3. Параллельное скачивание
+    # 3. Параллельная загрузка
     reel_data = {}
-    max_workers = 10  # подбирайте число потоков
 
-    futures = []
+    # Создаём пул потоков. max_workers можно подобрать опытным путём:
+    #  - Слишком высокое значение может перегрузить ваш канал, сайт, 
+    #    или API, если у них есть лимиты.
+    #  - Слишком маленькое — не даст полного ускорения.
+    # Обычно 5-10 потоков — нормальное начало.
+    max_workers = 10
+
+    # Запускаем через ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Каждую задачу — это один reel 
+        futures = []
         for item in data:
-            future = executor.submit(download_single_video, 
-                                     item=item, 
-                                     save_directory=save_directory, 
-                                     scraping_type=scraping_type,
-                                     host_list=host_list)
+            future = executor.submit(download_single_reel, item, host_list, save_directory)
             futures.append(future)
 
-        # tqdm + as_completed для красивой полоски прогресса
-        for fut in tqdm(as_completed(futures), total=len(futures), 
-                        desc=f"Скачивание {scraping_type} видео", unit="видео"):
-            shortCode, info = fut.result()  # (shortCode, {video_path, ...} или None)
-            if shortCode and info:
+        # Используем tqdm для красивого прогресса
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Процесс скачивания видео", unit="видео"):
+            shortCode, info = future.result()  # result() вернёт (shortCode, dict) или (shortCode, None)
+            if info is not None:
                 reel_data[shortCode] = info
+
+    return reel_data
+
+
+# Основная функция для скачивания 
+def download_tiktok(data):
+    # Создаем папку с датой
+    now = datetime.now()
+    date_time_folder = now.strftime("%Y%m%d")
+    save_directory = os.path.join('tiktok', date_time_folder)
+    os.makedirs(save_directory, exist_ok=True)
+
+    # Словарь для хранения шорткодов и путей к видео
+    reel_data = {}
+
+    # Функция для скачивания видео
+    def attempt_download(video_url, save_path):
+        try:
+            response = requests.get(video_url, stream=True)
+            if response.status_code == 200:
+                # Записываем файл
+                with open(save_path, 'wb') as video_file:
+                    for chunk in response.iter_content(chunk_size=256*1024):
+                        if chunk:
+                            video_file.write(chunk)
+                print(f"Видео файл сохранен: {save_path}")
+                return True  # Если успешно скачали, возвращаем True
+            else:
+                print(f"Ошибка загрузки: {response.status_code}")
+                return False
+        except Exception as e:
+            print(f"Ошибка при загрузке: {e}")
+            return False
+
+    # Основной процесс скачивания с проверкой и заменой хоста
+    for item in tqdm(data, desc="Процесс скачивания видео", unit="видео"):
+        shortCode = item.get('shortCode')
+        original_url = item.get('videoUrl')
+        video_file_name = f'{shortCode}.mp4'
+        file_path = os.path.join(save_directory, video_file_name)
+
+        # Пробуем скачать с оригинальной ссылки
+        success = attempt_download(original_url, file_path)
+
+        if success:
+            # Сохраняем информацию о скачанном видео
+            reel_data[shortCode] = {
+                "video_path": file_path,
+                "audio_path":
+                None,  # Для аудиофайла, который будет сгенерирован позже
+                "transcription":
+                None  # Для транскрипции, которая будет сгенерирована позже
+            }
+        else:
+            print(f"Не удалось скачать видео для шорткода: {shortCode}")
 
     return reel_data
 
@@ -329,11 +364,11 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
 
     output_apify_filename = f"{account['username']}_apify_{date_time_str}.json"
     output_database_filename = f"{account['username']}_database_{date_time_str}.json"
+    output_shares_filename = f"{account['username']}_shares_{date_time_str}.json"
     save_path_apify = os.path.join('db', str(account['id']),
                                    output_apify_filename)
     save_path_apify_database = os.path.join('db', str(account['id']),
                                    output_database_filename)
-    output_shares_filename = f"{account['username']}_shares_{date_time_str}.json"
 
     if debug == 1:
         #<DEBUG>
@@ -378,7 +413,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
             if sortedReelsCount == 0 and print('No new reels') is None: return
 
             extracted_data = apify.extracted_reels_data_maker(sorted_data)
-            transcript_data = download_videos(extracted_data, scraping_type)
+            transcript_data = download_reels(extracted_data)
 
         elif scraping_type == "tiktok":
             users_data = ggl.get_table_data_as_json(account, 'DATA_TIKTOK')
@@ -401,7 +436,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
             if sortedReelsCount == 0 and print('No new tiktok') is None: return
 
             extracted_data = apify.extracted_tiktok_data_maker(sorted_data) #TIKTOK
-            transcript_data = download_videos(extracted_data, scraping_type)
+            transcript_data = download_tiktok(extracted_data) #TIKTOK
         
 
     elif scheme == 1:
@@ -412,7 +447,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
 
         sorted_data = reelsData
         extracted_data = apify.extracted_reels_data_maker(sorted_data)
-        transcript_data = download_videos(extracted_data, scraping_type)
+        transcript_data = download_reels(extracted_data)
 
     elif scheme == 2:
         account['username'] = account.get('username') + "_saves"
@@ -422,12 +457,20 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
 
         sorted_data = reelsData
         extracted_data = apify.extracted_tiktok_data_maker(sorted_data) #TIKTOK
-        transcript_data = download_videos(extracted_data, scraping_type)
+        transcript_data = download_tiktok(extracted_data) #TIKTOK
 
     if debug == 1:
         #print(json.dumps(extracted_data, ensure_ascii=False, indent=4))
         print("DEBUG   Done")
     
+    '''
+    ###TEST_ZONE Помогает использовать уже полученный json файл от apify. Не забудь убрать reelsData в комментинг
+    ###TEST_ZONE
+    with open("db/2/dr.chshtnv_apify_20241021_191953.json", "r", encoding="utf-8") as file:
+        reelsData = json.load(file)
+    ### /TEST_ZONE
+    ### /TEST_ZONE
+    '''
 
     apify_end_time = time.time()
     total_apify_time_print = apify_end_time - start_time

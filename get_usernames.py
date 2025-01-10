@@ -2,23 +2,14 @@ import re
 from collections import Counter
 
 # Входной список ссылок
-links = '''https://www.instagram.com/nasta_lee?igsh=MWh5YWZ0MjdhdmRsdQ==
-
-https://www.instagram.com/tinvcb?igsh=c2x6MnZnanh6MWF2
-
-https://www.instagram.com/popkova.1440?igsh=c2ltcGdsNnJ0dWF5
-
-https://www.instagram.com/linguamarina?igsh=YmU1bm9ya29ya2ow
-
-https://www.instagram.com/marinamogilko?igsh=Z2hrb3g3djk0cWVs
-
-https://www.instagram.com/alexandramitroshina?igsh=MWZhM3B3cndrbHZzdQ==
-
-https://www.instagram.com/roudakova.anna?igsh=cW8zNXF2bThubDRk
-
-https://www.instagram.com/kdukalis?igsh=MW9mdDI3NGx0aG10eA==
-
-https://www.instagram.com/sasha_zharkovaa?igsh=MTc0MXJrc21kcDRtbw=='''
+links = '''https://www.instagram.com/thequalifiedcaptain
+https://www.instagram.com/theyachtmogul
+https://www.instagram.com/marktilbury
+https://www.instagram.com/damienhirst
+https://www.instagram.com/hauserwirth
+https://www.instagram.com/davidzwirner
+https://www.instagram.com/aiww
+'''
 
 #if links
 try:
