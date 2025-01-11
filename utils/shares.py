@@ -27,30 +27,10 @@ logging.basicConfig(
 # Загружаем переменные из .env
 load_dotenv()
 
-lnks_string2 = '''https://www.instagram.com/p/DEHOUZ1NOVc/
-https://www.instagram.com/p/DEHKcsmtKp8/
-https://www.instagram.com/p/DEFXWkeIko0/
-https://www.instagram.com/p/DEFJ795spc0/
-https://www.instagram.com/p/DEFFAuAoSJI/
-https://www.instagram.com/p/DEE9Re1syDF/'''
-
+#for only shares
 lnks_string = '''https://www.instagram.com/p/DEN4xTgNwxB/
 https://www.instagram.com/p/DENmR-QxR9J/
 https://www.instagram.com/p/DENgZg8NWp0/
-https://www.instagram.com/p/DD_lhL7tlcD/
-https://www.instagram.com/p/DD_izlMonyU/
-https://www.instagram.com/p/DD-AhPXt5fu/
-https://www.instagram.com/p/DD9yaOExQm2/
-https://www.instagram.com/p/DD9xn3zy9oV/
-https://www.instagram.com/p/DD9sAw-zNSI/
-https://www.instagram.com/p/DD9Uhyxta8w/
-https://www.instagram.com/p/DD9TAZ-uZay/
-https://www.instagram.com/p/DD8x2McIT0Y/
-https://www.instagram.com/p/DD8Gqfmz9iF/
-https://www.instagram.com/p/DD7xO-XCi7t/
-https://www.instagram.com/p/DD7w0SdPqCO/
-https://www.instagram.com/p/DD7l_91RyF1/
-https://www.instagram.com/p/DDr6DgZR77q/
 https://www.instagram.com/p/DDr2tEPS2zb/
 https://www.instagram.com/p/DDrpiLXyg60/
 https://www.instagram.com/p/DDrVbznoxcq/
