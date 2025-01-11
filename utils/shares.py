@@ -73,7 +73,7 @@ def login_to_instagram ():
         })
         time.sleep(1)
         
-        
+        '''
         # Проверяем наличие поля логина
         username_elements = driver.find_elements(AppiumBy.XPATH, username_xpath)
         if username_elements:
@@ -89,19 +89,19 @@ def login_to_instagram ():
                 password_field.send_keys(INSTAGRAM_PASSWORD)
                 time.sleep(1)
             else:
-                print("Поле пароля не найдено, не можем ввести пароль")
+                print(" - INSTAGRAM SHARES - Поле пароля не найдено, не можем ввести пароль")
             
             # Нажимаем кнопку Log in (если она есть)
             login_button_elements = driver.find_elements(AppiumBy.XPATH, login_button_xpath)
             if login_button_elements:
                 login_button = login_button_elements[0]
                 login_button.click()
-                print("Выполняем вход в аккаунт...")
+                print(" - INSTAGRAM SHARES - Выполняем вход в аккаунт...")
                 time.sleep(10)
             else:
-                print("Кнопка логина не найдена")
+                print(" - INSTAGRAM SHARES - Кнопка логина не найдена")
         else:
-            print("Поле username не найдено, пропускаем ввод логина/пароля")
+            print(" - INSTAGRAM SHARES - Поле username не найдено, пропускаем ввод логина/пароля")
 
         # После логина или пропуска ищем кнопку Save
         save_button_elements = driver.find_elements(AppiumBy.XPATH, save_button_xpath)
@@ -109,11 +109,11 @@ def login_to_instagram ():
             time.sleep(10)
             save_button = save_button_elements[0]
             save_button.click()
-            print("Нажали на кнопку 'Save'")
+            print(" - INSTAGRAM SHARES - Нажали на кнопку 'Save'")
             time.sleep(10)
         else:
             # Кнопка Save не найдена, переходим к следующему шагу
-            print("Кнопка 'Save' не найдена, следующий шаг...")
+            print(" - INSTAGRAM SHARES - Кнопка 'Save' не найдена, следующий шаг...")
         
         allow_notify_elements = driver.find_elements(AppiumBy.XPATH, allow_notify_xpath)
         allow_not_notify_button_elements = driver.find_elements(AppiumBy.XPATH, allow_notify_button_xpath)
@@ -121,14 +121,14 @@ def login_to_instagram ():
             time.sleep(10)
             allow_not_button = allow_not_notify_button_elements[0]
             allow_not_button.click()
-            print("Нажали на кнопку DontAllow'")
+            print(" - INSTAGRAM SHARES - Нажали на кнопку DontAllow'")
             time.sleep(3)
         else:
             # Кнопка dontallow не найдена, переходим к следующему шагу
-            print("Кнопка dontallow не найдена, следующий шаг...")
-        
+            print(" - INSTAGRAM SHARES - Кнопка dontallow не найдена, следующий шаг...")
+        '''
         instagram_running = True
-        print("Instagram app is running")
+        print(" - INSTAGRAM SHARES - Instagram app is running")
 
 
 
@@ -277,21 +277,22 @@ def fetch_reels_shares(reels_data, driver, shares_filename, save_path_shares):
                             print(f"Reshare number: {reshare_number}")
                         else:
                             reshare_number = "-1"
-                            print("ISSUE: NO RESHARES")
+                            error = "ISSUE: NO RESHARES"
+                            print(f"\033[91m{error}\033[0m")
 
                         success = True
                         break  # Если успешно, выходим из цикла попыток
 
                     except Exception as e:
-                        print(f"Ошибка при поиске элемента решера: {e}")
+                        print(f"\033[91mОшибка при поиске элемента решера: {e}\033[0m")
                         reshare_number = -1
 
                 except Exception as e:
-                    print(f"Ошибка при открытии Reels: {e}")
+                    print(f"\033[91mОшибка при открытии Reels: {e}\033[0m")
                     reshare_number = -1
 
                 if not success and attempt == 0:  # Если первая попытка не удалась
-                    print("Первая попытка не удалась, повторяем...")
+                    print("\033[36mПервая попытка не удалась, повторяем...\033[0m")
                     time.sleep(3)  # Небольшая пауза перед повторной попыткой
             
             # Добавляем данные в словарь sharesCountData
@@ -475,8 +476,8 @@ def fetch_reels_shares_manual_INPROGRESS(links, driver, shares_filename, save_pa
                 shares.append("-1")
                             # Сохраняем промежуточные результаты
             #write a data after each reels
-            os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
-            with open(save_path_result, "w", encoding="utf-8") as result_file:
+            os.makedirs(os.path.dirname(save_path_shares), exist_ok=True)
+            with open(save_path_shares, "w", encoding="utf-8") as result_file:
                 json.dump(shares, result_file, ensure_ascii=False, indent=4)
 
         #write a data

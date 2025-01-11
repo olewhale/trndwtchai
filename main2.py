@@ -35,9 +35,14 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Настройка логирования
+class NoOpenAILogFilter(logging.Filter):
+    def filter(self, record):
+        return "https://api.openai.com/v1/chat/completions" not in record.getMessage()
+
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+logger.addFilter(NoOpenAILogFilter())
 
 class ReelLinksData(BaseModel):
     urls: list[str]
@@ -270,17 +275,11 @@ def process_reel(shortCode, transcript_data, output_filename, model):
 def save_partial_transcription(reel_data, save_path_transcript):
     try:
         output = {
-            "processing_time_seconds":
-            0,  # Время добавим позже
             "transcriptions": [{
-                "shortCode":
-                shortCode,
-                "video_path":
-                reel_data[shortCode]["video_path"],
-                "audio_path":
-                reel_data[shortCode]["audio_path"],
-                "transcription":
-                reel_data[shortCode]["transcription"]
+                "shortCode":shortCode,
+                "video_path":reel_data[shortCode]["video_path"],
+                "audio_path":reel_data[shortCode]["audio_path"],
+                "transcription":reel_data[shortCode]["transcription"]
             } for shortCode in reel_data]
         }
 
@@ -299,7 +298,6 @@ def insert_transcription(extracted_data, output_data):
         for t in output_data['transcriptions']
     }
 
-    # Обновляем extracted_data
     for item in extracted_data:
         shortCode = item.get('shortCode')
         if shortCode in transcription_dict:
@@ -313,7 +311,7 @@ def insert_transcription(extracted_data, output_data):
 # БЛОК ПОДЗАДАЧ (01 - 06)
 # =============================
 
-def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time_str, debug=0):
+def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time_str):
     """
     01 - SCRAPING
 
@@ -326,6 +324,12 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
       - Сохраняет часть результатов (reelsData) в JSON-файл (save_path_apify)
       - Возвращает reelsData, extracted_data
     """
+    
+    debug = 0
+    if debug == 1:
+        # DEBUG-режим (если есть свои заглушечные данные):
+        with open("db/0/olegmazunin_apify_20250111_184025 copy.json", "r", encoding="utf-8") as file:
+            dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
     output_apify_filename = f"{account['username']}_apify_{date_time_str}.json"
@@ -351,10 +355,7 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
     reelsData = []
     extracted_data = []
 
-    if debug == 1:
-        # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/manual/test_asyncio.json", "r", encoding="utf-8") as file:
-            dataset_debug = json.load(file)
+
 
     # В зависимости от scraping_type:
     if scraping_type == "instagram":
@@ -476,7 +477,7 @@ def task_02_transcription(extracted_data, account, date_time_str, scraping_type)
             json.dump(output_data, file, ensure_ascii=False, indent=4)
 
     # Объединяем всё
-    results = insert_transcription(extracted_data, transcript_data)
+    results = insert_transcription(extracted_data, output_data)
     return results
 
 
@@ -621,6 +622,7 @@ def chain_transcript_and_openai(extracted_data, account, date_time_str, scraping
     Задача A:
       02 -> 03 -> 04
     """
+    print("---STARTED chain_A---")
     results_02 = task_02_transcription(extracted_data, account, date_time_str, scraping_type)
     results_03 = task_03_openai_original(results_02)
     results_04 = task_04_openai_rewrite(results_03, account, date_time_str)
@@ -632,6 +634,7 @@ def chain_get_shares(extracted_data, scraping_type, account, date_time_str):
     Задача B:
       05 - GET SHARES
     """
+    print("---STARTED chain_B---")
     sharesCountResults = task_05_get_shares(extracted_data, scraping_type, account, date_time_str)
     return sharesCountResults
 
@@ -644,7 +647,6 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     start_time = time.time()
     print("process data started")
 
-    debug = 0
     now = datetime.now()
     date_time_str = now.strftime("%Y%m%d_%H%M%S")
 
@@ -653,14 +655,13 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     os.makedirs(save_path, exist_ok=True)
 
     # 01 - SCRAPING (синхронно)
-    extracted_data = task_01_scraping(
+    reelsData, extracted_data = task_01_scraping(
         account,
         days,
         scheme,
         range_days,
         scraping_type,
-        date_time_str,
-        debug=debug
+        date_time_str
     )
     if not extracted_data:
         # Если вдруг ничего не получили
