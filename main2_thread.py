@@ -564,18 +564,18 @@ def task_04_openai_rewrite(results, account, date_time_str):
     return results
 
 
-def task_05_get_shares(extracted_data, scraping_type, account, date_time_str):
+def task_05_get_shares(reels_data, scraping_type, account, date_time_str):
     """
     05 - GET SHARES
     """
     if scraping_type == "instagram":
-        result_filename = f"{account['username']}_result_{date_time_str}.json"
-        save_path_result = os.path.join('db', str(account['id']), result_filename)
+        shares_filename = f"{account['username']}_result_{date_time_str}.json"
+        save_path_shares = os.path.join('db', str(account['id']), shares_filename)
         try:
-            shareCountResults = sh.execute_shares_scraping(extracted_data, result_filename, save_path_result)
+            sharesCountResults = sh.execute_shares_scraping(reels_data, shares_filename, save_path_shares)
         except Exception as e:
             print(f"Ошибка в процессе получения репостов: {e}")
-    return shareCountResults
+    return sharesCountResults
 
 
 def task_06_write_data_to_gs(results, account, scheme, scraping_type, start_time):
@@ -632,8 +632,8 @@ def chain_get_shares(extracted_data, scraping_type, account, date_time_str):
     Задача B:
       05 - GET SHARES
     """
-    results_05 = task_05_get_shares(extracted_data, scraping_type, account, date_time_str)
-    return results_05
+    sharesCountResults = task_05_get_shares(extracted_data, scraping_type, account, date_time_str)
+    return sharesCountResults
 
 
 # =============================
@@ -645,7 +645,6 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     print("process data started")
 
     debug = 0
-
     now = datetime.now()
     date_time_str = now.strftime("%Y%m%d_%H%M%S")
 
@@ -669,30 +668,38 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
         return
 
     # ПАРАЛЛЕЛЬНО: A) (02->03->04), B) (05)
-    results_A = None
-    results_B = None
+    chain_main_results = None
+    shares_results = None
 
     def parallel_chain_A():
         return chain_transcript_and_openai(extracted_data, account, date_time_str, scraping_type)
 
     def parallel_chain_B():
-
         return chain_get_shares(extracted_data, scraping_type, account, date_time_str)
-
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         future_A = executor.submit(parallel_chain_A)
-        future_B = executor.submit(parallel_chain_B)
+        # Задача B (05 - GET SHARES) — только если instagram
+        if scraping_type == "instagram":
+            future_B = executor.submit(parallel_chain_B)   
+        else:
+            future_B = None 
 
-        for f in as_completed([future_A, future_B]):
-            if f is future_A:
-                results_A = f.result()
-            else:
-                results_B = f.result()
+        # Ждём окончания A
+        chain_main_results = future_A.result()
 
-    # Если нам надо "объединять" данные из A и B — тут можно дописать merge.
-    # Для простоты возьмём за основу results_A:
-    results_final = results_A
+        # Если есть future_B (instagram), ждём и его
+        if future_B:
+            shares_results = future_B.result()
+
+
+    # Если нам надо "объединять" данные из A и B
+    results_final = chain_main_results
+    if scraping_type == "instagram":
+        for item in results_final:
+            shortCode = item.get('shortCode')
+            if shortCode in shares_results:
+                item['shareCount'] = shares_results[shortCode]
 
     # 06 - WRITE DATA TO GOOGLE SHEET
     task_06_write_data_to_gs(results_final, account, scheme, scraping_type, start_time)

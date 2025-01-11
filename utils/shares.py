@@ -217,8 +217,9 @@ def get_reshare_number_from_xml(driver):
         print(f"Ошибка при парсинге XML: {e}")
         return None
 
-def fetch_reels_shares(reels_data, driver, result_filename, save_path_result):
-
+def fetch_reels_shares(reels_data, driver, shares_filename, save_path_shares):
+    
+    sharesCountResults = {}
     try:
         # Убедись, что Appium сервер запущен по указанному адресу
         driver.execute_script('mobile: shell', {
@@ -276,29 +277,29 @@ def fetch_reels_shares(reels_data, driver, result_filename, save_path_result):
                             print(f"Reshare number: {reshare_number}")
                         else:
                             reshare_number = "-1"
-                            print("Reshare number not found")
+                            print("ISSUE: NO RESHARES")
 
-                        #Сохраняем данные в массив
-                        item['shareCount'] = reshare_number
                         success = True
                         break  # Если успешно, выходим из цикла попыток
 
                     except Exception as e:
                         print(f"Ошибка при поиске элемента решера: {e}")
-                        item['shareCount'] = -1
+                        reshare_number = -1
 
                 except Exception as e:
                     print(f"Ошибка при открытии Reels: {e}")
-                    item['shareCount'] = -1
+                    reshare_number = -1
 
                 if not success and attempt == 0:  # Если первая попытка не удалась
                     print("Первая попытка не удалась, повторяем...")
                     time.sleep(3)  # Небольшая пауза перед повторной попыткой
             
-            #write a data after each reels
-            os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
-            with open(save_path_result, "w", encoding="utf-8") as result_file:
-                json.dump(reels_data, result_file, ensure_ascii=False, indent=4)
+            # Добавляем данные в словарь sharesCountData
+            sharesCountResults[item['shortCode']] = reshare_number
+            
+            os.makedirs(os.path.dirname(save_path_shares), exist_ok=True)
+            with open(save_path_shares, "w", encoding="utf-8") as result_file:
+                json.dump(sharesCountResults, result_file, ensure_ascii=False, indent=4)
 
             # Логика рандомного выполнения свайпов
             if i % random_divisor == 0:
@@ -309,25 +310,19 @@ def fetch_reels_shares(reels_data, driver, result_filename, save_path_result):
                 # Обновляем делитель после выполнения свайпов
                 random_divisor = random.randint(10, 20)
 
-        #write a data
-        os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
-        with open(save_path_result, "w", encoding="utf-8") as result_file:
-            json.dump(reels_data, result_file, ensure_ascii=False, indent=4)
-        print(f"Saved final reels data to {filename}")
-
     except Exception as e:
         print(f"Общая ошибка в процессе: {e}")
-        return reels_data
+        return sharesCountResults
 
     finally:
         # Гарантированно закрываем драйвер
         try:
             driver.quit()
-            return reels_data
+            return sharesCountResults
         except:
             pass
 
-def fetch_reels_shares_manual_INPROGRESS(links, driver, result_filename, save_path_result):
+def fetch_reels_shares_manual_INPROGRESS(links, driver, shares_filename, save_path_shares):
     shares =[]
     try:
         # Убедись, что Appium сервер запущен по указанному адресу
@@ -502,7 +497,7 @@ def fetch_reels_shares_manual_INPROGRESS(links, driver, result_filename, save_pa
         except:
             pass
 
-def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
+def fetch_reels_shares_manual(links, driver, shares_filename, save_path_shares):
     shares =[]
     try:
 
@@ -513,8 +508,6 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
         })
         driver.press_keycode(3)  # Кнопка Home для выхода на рабочий экран
         logging.info("kill all apps")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"sharesCount_manual_{timestamp}.json"
 
         time.sleep(5)
         random_divisor = random.randint(3, 5)  # Устанавливаем начальное значение делителя
@@ -584,9 +577,9 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
                     time.sleep(3)  # Небольшая пауза перед повторной попыткой
 
             # Сохраняем промежуточные результаты
-            os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
-            with open(save_path_result, "w", encoding="utf-8") as result_file:
-                json.dump(shares, result_file, ensure_ascii=False, indent=4)
+            os.makedirs(os.path.dirname(save_path_shares), exist_ok=True)
+            with open(save_path_shares, "w", encoding="utf-8") as shares_file:
+                json.dump(shares, shares_file, ensure_ascii=False, indent=4)
 
             # Логика рандомного выполнения свайпов
             if i % random_divisor == 0:
@@ -597,12 +590,6 @@ def fetch_reels_shares_manual(links, driver, result_filename, save_path_result):
                 # Обновляем делитель после выполнения свайпов
                 random_divisor = random.randint(3, 5)
 
-
-        #write a data
-        os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
-        with open(save_path_result, "w", encoding="utf-8") as result_file:
-           json.dump(shares, result_file, ensure_ascii=False, indent=4)
-        print(f"Saved final reels data to {filename}")
 
     except Exception as e:
         print(f"Общая ошибка в процессе: {e}")
@@ -622,6 +609,9 @@ def execute_shares_scraping(reels_data, result_filename, save_path_result):
     if instagram_running:
         scraped_data = fetch_reels_shares(reels_data, driver, result_filename, save_path_result)
         return scraped_data
+
+
+
 
 def execute_shares_scraping_manual():
     instagram_running, driver = login_to_instagram()
