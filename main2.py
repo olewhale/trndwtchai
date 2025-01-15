@@ -328,7 +328,7 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
     debug = 0
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/0/olegmazunin_apify_20250111_184025 copy.json", "r", encoding="utf-8") as file:
+        with open("db/16/potok_5prizm_database_20250114_193553.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
@@ -570,7 +570,7 @@ def task_05_get_shares(reels_data, scraping_type, account, date_time_str):
     05 - GET SHARES
     """
     if scraping_type == "instagram":
-        shares_filename = f"{account['username']}_result_{date_time_str}.json"
+        shares_filename = f"{account['username']}_shares_{date_time_str}.json"
         save_path_shares = os.path.join('db', str(account['id']), shares_filename)
         try:
             sharesCountResults = sh.execute_shares_scraping(reels_data, shares_filename, save_path_shares)

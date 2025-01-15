@@ -604,11 +604,11 @@ def fetch_reels_shares_manual(links, driver, shares_filename, save_path_shares):
         except:
             pass
 
-def execute_shares_scraping(reels_data, result_filename, save_path_result):
+def execute_shares_scraping(reels_data, result_filename, save_path_share_results):
     instagram_running, driver = login_to_instagram()
 
     if instagram_running:
-        scraped_data = fetch_reels_shares(reels_data, driver, result_filename, save_path_result)
+        scraped_data = fetch_reels_shares(reels_data, driver, result_filename, save_path_share_results)
         return scraped_data
 
 
