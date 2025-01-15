@@ -101,7 +101,10 @@ def generate_original_script(item):
         item.get("original_script", {}).get("content", "") == '-' and 
         item.get("original_script", {}).get("cta", "") == '-'
     ):
-        return "НЕТ ТЕКСТА"
+        return (f'''НЕТ ТЕКСТА
+
+#CAPTION
+{item.get("caption", "")}''')
     
     # Формируем финальный текст
     return (
@@ -135,7 +138,10 @@ def generate_rewrited_script(item):
         item.get("rewrited_script", {}).get("content", "") == '-' and 
         item.get("rewrited_script", {}).get("cta", "") == '-'
     ):
-        return "НЕТ ТЕКСТА"
+        return (f'''НЕТ ТЕКСТА
+        
+#CAPTION
+{item.get("rewrited_script", {}).get("caption", "")}''')
     
     # Формируем финальный текст
     return (
@@ -352,35 +358,11 @@ COLUMNS_CONFIG = {
         },
         {
             "name": "original_script",
-            "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'''{song_string if item.get("song") else ""}{humor_string if item.get("humor") else ""}#HOOK
-{item["original_script"].get("hook", "")}
-
-#CONTENT
-{item["original_script"].get("content", "")}
-
-#CTA
-{item["original_script"].get("cta", "")}
-
-#CAPTION
-{item.get("caption", "")}'''
-            )
+            "value_func": lambda item, row_n, i2excel, name2idx: generate_original_script(item)
         },
         {
             "name": "rewrited_script",
-            "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'''{song_string if item.get("song") else ""}{humor_string if item.get("humor") else ""}#HOOK
-{item["rewrited_script"].get("hook", "")}
-
-#CONTENT
-{item["rewrited_script"].get("content", "")}
-
-#CTA
-{item["rewrited_script"].get("cta", "")}
-
-#CAPTION
-{item["rewrited_script"].get("caption", "")}'''
-            )
+            "value_func": lambda item, row_n, i2excel, name2idx: generate_rewrited_script(item)
         }
     ],
 

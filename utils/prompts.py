@@ -407,6 +407,26 @@ def spez_rewriter_script(original, caption):
   caption = caption_translated
   '''
 
+  spez_rewriter_instruction_if_no_transcript = f'''
+#TASK
+#Твоя задача:
+caption_translated = Переведи caption_original на {language} язык
+
+#Specifics
+  - Все пиши на {language} языке
+
+#OUTPUT
+  hook = '-'
+  content = '-'
+  cta = '-'
+  caption = caption_translated
+  '''
+
+  if original == {}:
+    spez_rewriter_instruction = spez_rewriter_instruction_if_no_transcript
+  else:
+    spez_rewriter_instruction = spez_rewriter_instruction
+
   try:
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-2024-11-20",
