@@ -208,8 +208,8 @@ COLUMNS_CONFIG = {
             "value_func": lambda item, row_n, i2excel, name2idx: item["original_script"].get("hook", "")
         },
         {
-            "name": "text_hook",
-            "value_func": lambda item, row_n, i2excel, name2idx: ""  # оставим пустым
+            "name": "empty",
+            "value_func": lambda item, row_n, i2excel, name2idx: ""
         },
         {
             "name": "caption",
@@ -268,6 +268,10 @@ COLUMNS_CONFIG = {
         {
             "name": "rewrited_script",
             "value_func": lambda item, row_n, i2excel, name2idx: generate_rewrited_script(item)
+        },
+        {
+            "name": "musicInfo",
+            "value_func": lambda item, row_n, i2excel, name2idx: item.get("musicInfo", "")
         }
     ],
 
@@ -298,8 +302,8 @@ COLUMNS_CONFIG = {
             "value_func": lambda item, row_n, i2excel, name2idx: item.get("theme", "")
         },
         {
-            "name": "hook",
-            "value_func": lambda item, row_n, i2excel, name2idx: item["original_script"].get("hook", "")
+            "name": "empty",
+            "value_func": lambda item, row_n, i2excel, name2idx: ""
         },
         {
             "name": "caption",
@@ -363,6 +367,10 @@ COLUMNS_CONFIG = {
         {
             "name": "rewrited_script",
             "value_func": lambda item, row_n, i2excel, name2idx: generate_rewrited_script(item)
+        },
+        {
+            "name": "musicInfo",
+            "value_func": lambda item, row_n, i2excel, name2idx: item.get("musicInfo", "")
         }
     ],
 
@@ -525,3 +533,5 @@ with open("db/22/damir_result_20250104_151517.json", "r", encoding="utf-8") as f
     results = json.load(file)
 append_data_to_google_sheet(results, "1uXEWHBW2aNChgtR9mB4JOV-fpTZS83i_oMT_Ar-vtJo", 'TIKTOK', scraping_type="tiktok")
 '''
+
+

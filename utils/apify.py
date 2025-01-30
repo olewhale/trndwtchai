@@ -230,20 +230,20 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     }
 
     # Фильтруем рилсы
-    filtered_reels = [
-        reel for reel in reelsData
-        if (reel['inputUrl'].split('/')[-1] in username_limits and 
-            reel.get('videoPlayCount') is not None and  # Проверка на None
-            reel.get('videoPlayCount', 0) >= username_limits[reel['inputUrl'].split('/')[-1]])
-    ]
-
-    # CUSTOM FILTER
     # filtered_reels = [
     #     reel for reel in reelsData
     #     if (reel['inputUrl'].split('/')[-1] in username_limits and 
     #         reel.get('videoPlayCount') is not None and  # Проверка на None
-    #         reel.get('videoPlayCount', 0) >= 30000 and reel.get('videoPlayCount', 0) < 100000)
+    #         reel.get('videoPlayCount', 0) >= username_limits[reel['inputUrl'].split('/')[-1]])
     # ]
+
+    # CUSTOM FILTER
+    filtered_reels = [
+        reel for reel in reelsData
+        if (reel['inputUrl'].split('/')[-1] in username_limits and 
+            reel.get('videoPlayCount') is not None and  # Проверка на None
+            reel.get('videoPlayCount', 0) >= 10000 and reel.get('videoPlayCount', 0) < 30000)
+    ]
 
     # Сортировка только по 'timestamp'
     sorted_data = sorted(
@@ -364,7 +364,8 @@ def extracted_reels_data_maker(data):
             'shareCount': entry.get('shareCount'),
             'videoPlayCount': entry.get('videoPlayCount'),
             'videoDuration': entry.get('videoDuration'),
-            'er_commlike': er_commlike
+            'er_commlike': er_commlike,
+            'musicInfo': str(entry.get("musicInfo", {}).get("artist_name", "") + " - " + entry.get("musicInfo", {}).get("song_name", ""))
         }
         extracted_data.append(extracted_entry)
 
@@ -439,7 +440,8 @@ def extracted_tiktok_data_maker(data):
             'videoDuration': duration,
             'er_all': er_all,
             'er_shares': er_shares,
-            'er_followers': er_followers
+            'er_followers': er_followers,
+            'musicInfo': str(entry.get("song", {}).get("artist", "") + " - " + entry.get("song", {}).get("title", ""))
         }
         extracted_data.append(extracted_entry)
 

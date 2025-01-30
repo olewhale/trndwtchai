@@ -328,7 +328,7 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
     debug = 1
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/11/daria_koziakova_database_20250115_182233.json", "r", encoding="utf-8") as file:
+        with open("db/7/kseniiagallianova_database_20250129_171017.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
@@ -574,6 +574,7 @@ def task_05_get_shares(reels_data, scraping_type, account, date_time_str):
     """
     05 - GET SHARES
     """
+    sharesCountResults = {}
     if scraping_type == "instagram":
         shares_filename = f"{account['username']}_shares_{date_time_str}.json"
         save_path_shares = os.path.join('db', str(account['id']), shares_filename)

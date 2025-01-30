@@ -395,6 +395,7 @@ def spez_rewriter_script(original, caption):
 
 ##Шаг4
   caption_translated = Перевод caption_original на {language} язык
+  Запрещается переводить хэштеги. Просто скопируй хэштеги
 
 #Specifics
   - выполняй строго по шагам. Ничего не пропускай
@@ -410,7 +411,8 @@ def spez_rewriter_script(original, caption):
   spez_rewriter_instruction_if_no_transcript = f'''
 #TASK
 #Твоя задача:
-caption_translated = Переведи caption_original на {language} язык
+caption_translated = Переведи caption_original на {language} язык.
+Запрещается переводить хэштеги. Просто скопируй хэштеги
 
 #Specifics
   - Все пиши на {language} языке

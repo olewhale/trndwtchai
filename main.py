@@ -76,9 +76,8 @@ if __name__ == "__main__":
 
     if x == 0:
         print("Скрипт запущен")
-        #main2.app_run(option="one", account_id=23, range_days="0-15", scraping_type="tiktok")
-        #main2.app_run(option="one", account_id=24, range_days="0-15", scraping_type="instagram")
-        main2.app_run(option="one", account_id=11, range_days="0-20", scraping_type="instagram")
+        main2.app_run(option="one", account_id=7, range_days="3-4", scraping_type="instagram")
+        #main2.app_run(option="one", account_id=29, range_days="0-22", scraping_type="tiktok")
     elif x == 1:
         print("Скрипт запущен")
         main2.app_run(option="all", range_days="3-4", scraping_type="instagram")
