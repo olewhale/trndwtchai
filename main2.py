@@ -325,7 +325,7 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
       - Возвращает reelsData, extracted_data
     """
     
-    debug = 1
+    debug = 0
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
         with open("db/7/kseniiagallianova_database_20250129_171017.json", "r", encoding="utf-8") as file:
