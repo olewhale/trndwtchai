@@ -85,7 +85,7 @@ class RewritedScript(BaseModel):
 
 
 
-def spez_common_script(post_text, caption):
+def spez_common_script(post_text, caption, language):
 
   language = 'русский'
 
@@ -166,8 +166,6 @@ caption = "{caption}"
     return {"error": "Ошибка при вызове OpenAI API"}
 
 def spez_original_script(post_text):
-
-  language = 'русский'
 
   system_role = '''
 #ROLE
@@ -283,9 +281,7 @@ transcription = "{post_text}"
     return {"error": "Ошибка при вызове OpenAI API"}
 
 
-def spez_rewriter_script(original, caption):
-
-  language = 'русский'
+def spez_rewriter_script(original, caption, language):
 
   system_role = '''
 #ROLE

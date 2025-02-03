@@ -481,17 +481,19 @@ def task_02_transcription(extracted_data, account, date_time_str, scraping_type)
     return results
 
 
-def task_03_openai_original(results):
+def task_03_openai_original(results, account):
     """
     03 - OPENAI_ORIGINAL
     """
     len_results = len(results)
+
     for index, item in tqdm(enumerate(results, start=1),
                             total=len_results,
                             desc="Process spez_original:",
                             unit="reel"):
         transcription = item.get('transcription')
         # 1) Общая логика
+        
         spez_common_answer = gpt.spez_common_script(transcription, item.get('caption'))
         item['topic'] = spez_common_answer.get('topic', '')
         item['theme'] = spez_common_answer.get('theme', '')
@@ -526,6 +528,8 @@ def task_04_openai_rewrite(results, account, date_time_str):
     result_filename = f"{account['username']}_result_{date_time_str}.json"
     save_path_result = os.path.join('db', str(account['id']), result_filename)
     os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
+    
+    language = account.get('language')
 
     for index, item in tqdm(enumerate(results, start=1),
                             total=len_results,
@@ -545,7 +549,7 @@ def task_04_openai_rewrite(results, account, date_time_str):
 
             spez_rewriter_answer = gpt.spez_rewriter_script(
                 {'hook': hook, 'content': content, 'cta': cta},
-                item.get('caption')
+                item.get('caption'), language
             )
             item['rewrited_script'] = {
                 "hook":    spez_rewriter_answer.get('hook', '-'),
@@ -555,7 +559,7 @@ def task_04_openai_rewrite(results, account, date_time_str):
             }
         else:
             # Нет транскрипции
-            spez_rewriter_answer = gpt.spez_rewriter_script({}, item.get('caption'))
+            spez_rewriter_answer = gpt.spez_rewriter_script({}, item.get('caption'), language)
             item['rewrited_script'] = {
                 "hook": "-",
                 "content": "-",
@@ -630,7 +634,7 @@ def chain_transcript_and_openai(extracted_data, account, date_time_str, scraping
     """
     print("---STARTED chain_A---")
     results_02 = task_02_transcription(extracted_data, account, date_time_str, scraping_type)
-    results_03 = task_03_openai_original(results_02)
+    results_03 = task_03_openai_original(results_02, account)
     results_04 = task_04_openai_rewrite(results_03, account, date_time_str)
     return results_04
 
@@ -712,177 +716,6 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
     task_06_write_data_to_gs(results_final, account, scheme, scraping_type, start_time)
 
     return "Process completed successfully!"
-
-
-
-#if you need only spez with openai
-def process_data_onlyspez(account, days=2, links=[], scheme=0):
-
-    save_path_result = 'db/19/potok_germany_result_20241230_124000.json'
-
-
-    start_time = time.time()
-    print('process data started')
-
-    if scheme == 0:
-        users_data = ggl.get_table_data_as_json(account, 'DATA')
-        if not users_data and print('No users') is None: return
-
-    with open(save_path_result, "r", encoding="utf-8") as file:
-        results = json.load(file)
-    results = list(results)
-
-    for i, item in tqdm(enumerate(results, start=1), total=len(results), desc="Process spez_original:", unit="reel"):
-        spez_common_answer = {}
-        spez_original_answer = {}
-        transcription = item.get('transcription')
-
-        spez_common_answer = gpt.spez_common_script(transcription,
-                                                    item.get('caption'))
-        item['topic'] = spez_common_answer.get('topic', '')
-        item['theme'] = spez_common_answer.get('theme', '')
-
-        if transcription != "Ошибка транскрибации":
-            spez_original_answer = gpt.spez_original_script(transcription)
-
-            # Выводим первые 100 символов из JSON-данных
-            json_output_spez_original = json.dumps(spez_original_answer, ensure_ascii=False, indent=4)
-            print(json_output_spez_original[:100])  # Выводим только первые 100 символов
-            try:
-                #gpt_answer_dict = json.loads(str(gpt_answer))
-                item['original_script'] = {}
-                item['original_script']['hook'] = spez_original_answer.get(
-                    'hook', '')
-                item['original_script']['content'] = spez_original_answer.get(
-                    'content', '')
-                item['original_script']['cta'] = spez_original_answer.get(
-                    'cta', '')
-                item['song'] = spez_original_answer.get('song', None)
-                item['humor'] = spez_original_answer.get('humor', None)
-            except json.JSONDecodeError:
-                print(
-                    "Error: String returned from spez_reelsmaker is not valid JSON"
-                )
-                # Optionally handle the error, e.g., set defaults or skip
-                continue
-        else:
-            try:
-                item['original_script'] = {}
-                item['original_script']['hook'] = '-'
-                item['original_script']['content'] = '-'
-                item['original_script']['cta'] = '-'
-                item['song'] = 0
-                item['humor'] = 0
-            except json.JSONDecodeError:
-                print(
-                    "Error: String returned from spez_reelsmaker is not valid JSON"
-                )
-                # Optionally handle the error, e.g., set defaults or skip
-                continue
-            print(f"No transcription found for item {item.get('shortCode')}")
-
-
-
-    #make a file
-    os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
-    with open(save_path_result, "w", encoding="utf-8") as result_file:
-        json.dump(results, result_file, ensure_ascii=False, indent=4)
-
-    #Сюда надо добавить данные с второго агента
-    for i, item in tqdm(enumerate(results, start=1), total=len(results), desc="Process spez_rewriter:", unit="reel"):
-        spez_rewriter_answer = {}
-        transcription = item.get('transcription')
-
-        if transcription != "Ошибка транскрибации":
-            # Получаем уже сохранённые данные скрипта
-            original_script = item.get('original_script', {})
-            hook = original_script.get('hook', '')
-            content = original_script.get('content', '')
-            cta = original_script.get('cta', '')
-
-            spez_rewriter_answer = gpt.spez_rewriter_script(
-                {
-                    'hook': hook,
-                    'content': content,
-                    'cta': cta
-                }, item.get('caption'))
-            # Выводим первые 100 символов из JSON-данных
-            json_output_spez_rewriter = json.dumps(spez_rewriter_answer, ensure_ascii=False, indent=4)
-            print(json_output_spez_rewriter[:100])  # Выводим только первые 100 символов
-            print("------------------")
-            try:
-                item['rewrited_script'] = {}
-                item['rewrited_script']['hook'] = spez_rewriter_answer.get(
-                    'hook', "-")
-                item['rewrited_script']['content'] = spez_rewriter_answer.get(
-                    'content', "-")
-                item['rewrited_script']['cta'] = spez_rewriter_answer.get(
-                    'cta', "-")
-                item['rewrited_script']['caption'] = spez_rewriter_answer.get(
-                    'caption', '')
-            except json.JSONDecodeError:
-                print(
-                    "Error: String returned from spez_reelsmaker is not valid JSON"
-                )
-                # Optionally handle the error, e.g., set defaults or skip
-                continue
-        else:
-            spez_rewriter_answer = gpt.spez_rewriter_script(
-                {}, item.get('caption'))
-
-            try:
-                item['rewrited_script'] = {}
-                item['rewrited_script']['hook'] = "-"
-                item['rewrited_script']['content'] = "-"
-                item['rewrited_script']['cta'] = "-"
-                item['rewrited_script']['caption'] = spez_rewriter_answer.get(
-                    'caption', '')
-            except json.JSONDecodeError:
-                print(
-                    "Error: String returned from spez_reelsmaker is not valid JSON"
-                )
-                # Optionally handle the error, e.g., set defaults or skip
-                continue
-            print(f"No transcription found for item {item.get('shortCode')}")
-    total_processing_time = 0
-
-    os.makedirs(os.path.dirname(save_path_result), exist_ok=True)
-    with open(save_path_result, "w", encoding="utf-8") as result_file:
-        json.dump(results, result_file, ensure_ascii=False, indent=4)
-    ###
-
-    #print(results)
-    #json_results = json.dumps(results, indent=4) # эта строка преобразует список в json строку
-
-    try:
-        if scheme == 0:
-            ggl.append_data_to_google_sheet(results, account["table_id"],
-                                            'INSTAGRAM')
-        elif scheme == 1:
-            ggl.append_data_to_google_sheet(results, account["table_id"],
-                                            'INSTAGRAM_SAVED')
-        elif scheme == 2:
-            ggl.append_data_to_google_sheet(results,
-                                            account["table_id"],
-                                            'TIKTOK_SAVED',
-                                            scheme=2)
-
-        print(f"\nDONE\n\n")
-
-        end_time = time.time()
-        total_process_time_print = end_time - start_time
-        print("*")
-        print("*")
-        print("*")
-        print(f"Общее время обработки: {total_process_time_print:.2f} секунд")
-        print("*")
-        print("*")
-        print("*")
-
-        return "Process completed successfully!"
-    except Exception as e:
-        print(f"Ошибка в процессе обработки в ggl: {e}")
-
 
 
 

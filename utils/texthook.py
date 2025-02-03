@@ -6,6 +6,7 @@ import base64
 import openai
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
+from tqdm import tqdm
 
 # Load environment variables from .env file
 load_dotenv()
@@ -27,30 +28,70 @@ def recognition(frame_paths):
             })
 
     completion = client.beta.chat.completions.parse(
-        model="gpt-4o-mini",
+        model="gpt-4o-2024-08-06",
         messages=[
             {
                 "role": "system",
                 "content": '''#ROLE
-You are an expert with years of experience creating instagram reels.
+You are an expert with years of experience creating high-performing Instagram Reels.
+
 #TASK
-Your goal is to extract only the text hook from these frames of an Instagram reel 
-without additional formatting, explanation, or structure. The text hook can be 1-2 sentences 
-and should engage the audience so that they continue watching this reel video.
+Your goal is to extract only the text hook from these frames of an Instagram Reel 
+without any additional formatting, explanation, or structure. The hook should be 1-2 sentences 
+and must be engaging enough to capture attention and keep viewers watching.
+
 #STEPS
 ##STEP_1
-Write all text found in the images to 'full_text'.
-The two images must have the same text. If the text is different, 
-use the text from the first image only!
-##STEP_2
-Copy 1-2 sentences from the 'full_text' which looks like a catchy hook in an Instagram.
+Extract all visible text from both images and store it in 'full_text'.
+- If the text is **split across multiple frames** (e.g., different words appearing on different images), **combine them into a single logical sentence**.  
+- Preserve the **natural reading order** of the text as it would appear if read sequentially from the images.  
+- Ensure that **the final extracted text forms a grammatically correct, meaningful sentence**.
 
-#EXAMPLE
-"full_text": "Stop ‘pretending’ your content is under control (when it really isn’t)\nHERE’S 5 EXAMPLES ON HOW TO ACTUALLY GET IT ORGANISED\nWhy automate when you can micromanage every little detail yourself?",
-"text_hook": "Stop ‘pretending’ your content is under control (when it really isn’t). Here’s 5 examples on how to actually get it organised!"
+##STEP_2
+Extract the **first complete sentence** from 'full_text' as the Instagram hook.
+- The **first sentence** is the one that appears first in logical reading order.  
+- If words are split across frames, make sure to **combine them into a complete sentence** instead of taking partial fragments.  
+- **Do not cut off sentences** mid-way. If a sentence starts but does not finish, always extract the full sentence.
+- Ignore repetitive or generic phrases that appear later in the text if the first sentence is meaningful.
+
+#EXAMPLES
+✅ **Correct behavior:**
+"full_text": "ПОСМОТРИ ЭТИ 6 ЛЕКЦИИ КОТОРЫЕ НАУЧАТ ВАС",
+"text_hook": "ПОСМОТРИ ЭТИ 6 ЛЕКЦИИ КОТОРЫЕ НАУЧАТ ВАС"
+
+✅ **Correct behavior (text split across multiple frames):**
+Image 1: "Как увеличить"
+Image 2: "доход в 2 раза?"
+"full_text": "Как увеличить доход в 2 раза? Вот я вошел в свой офис",
+"text_hook": "Как увеличить доход в 2 раза?"
+
+✅ **Correct behavior (text scattered across multiple images but forms one idea):**
+Image 1: "Лучшая стратегия"
+Image 2: "для роста бизнеса"
+"full_text": "Лучшая стратегия для роста бизнеса. Я сейчас вам такое покажу",
+"text_hook": "Лучшая стратегия для роста бизнеса"
+
+❌ **Incorrect behavior (Don't cutting off the sentence):**
+"full_text": "ПОСМОТРИ ЭТИ 6 ЛЕКЦИИ КОТОРЫЕ НАУЧАТ ВАС",
+"text_hook": "ПОСМОТРИ ЭТИ 6 ЛЕКЦИИ"
+
+✅ **Correct behavior:**
+"full_text": "ПОСМОТРИ ЭТИ 6 ЛЕКЦИИ КОТОРЫЕ НАУЧАТ ВАС",
+"text_hook": "ПОСМОТРИ ЭТИ 6 ЛЕКЦИИ КОТОРЫЕ НАУЧАТ ВАС"
+
+❌ **Incorrect behavior (Don't cutting off the sentence):**
+"full_text": "АМЕРИКАНЦЫ НЕ СНИМАЮТ СТОРИС НЕ ДЕЛАЮТ ЗАПУСКИ",
+"text_hook": "АМЕРИКАНЦЫ НЕ СНИМАЮТ СТОРИС"
+
+✅ **Correct behavior:**
+"full_text": "АМЕРИКАНЦЫ НЕ СНИМАЮТ СТОРИС НЕ ДЕЛАЮТ ЗАПУСКИ",
+"text_hook": "АМЕРИКАНЦЫ НЕ СНИМАЮТ СТОРИС НЕ ДЕЛАЮТ ЗАПУСКИ"
 
 #CONTEXT
-- It is forbidden to change text, just copy!
+- Do NOT modify or rewrite the text—simply extract it as-is.
+- The hook is typically positioned in the center or top of the image.
+- If a sentence is split across multiple frames, **reconstruct it properly** to preserve its full meaning.
+- Ensure that the extracted text is not subtitles from the video’s voiceover. Subtitles are positioned at the bottom of the image.
 
 '''
             },
@@ -69,51 +110,95 @@ Copy 1-2 sentences from the 'full_text' which looks like a catchy hook in an Ins
 # Ensure 'texthook' directory exists
 os.makedirs('texthook', exist_ok=True)
 
-# Path to the video file
-video_path = 'texthook/video6.mp4'
+# List of video paths
+video_paths = [
+    'texthook_folder/folder/test1.mp4',
+    'texthook_folder/folder/test2.mp4',
+    'texthook_folder/folder/test3.mp4',
+    'texthook_folder/folder/test4.mp4',
+    'texthook_folder/folder/test5.mp4',
+    'texthook_folder/folder/test6.mp4',
+    'texthook_folder/folder/test7.mp4'
+]
 
-# Initialize video capture
-cap = cv2.VideoCapture(video_path)
-
-# Frame counter
-frame_count = 0
+video_paths2 = [
+    'texthook_folder/test1.mp4',
+    'texthook_folder/test2.mp4',
+    'texthook_folder/test3.mp4',
+    'texthook_folder/test4.mp4',
+    'texthook_folder/test5.mp4',
+    'texthook_folder/test6.mp4',
+    'texthook_folder/test7.mp4',
+    'texthook_folder/test8.mp4',
+    'texthook_folder/test9.mp4',
+    'texthook_folder/test10.mp4',
+    'texthook_folder/test11.mp4',
+    'texthook_folder/test12.mp4',
+    'texthook_folder/test13.mp4',
+    'texthook_folder/test14.mp4'
+]
 
 # Initialize a list to store the results
 results = []
 
-# Initialize a dictionary to store the results for all frames
-result = {'video_path': video_path}
+# Process each video with progress bar
+for video_path in tqdm(video_paths, desc="Processing videos"):
+    # Initialize video capture
+    cap = cv2.VideoCapture(video_path)
 
-# Process specific frames: 5, 25
-frame_numbers = {5, 25}
-frame_paths = []
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
+    # Frame counter
+    frame_count = 0
 
-    if frame_count in frame_numbers:
-        frame_path = f'texthook/frame_{frame_count}.png'
-        cv2.imwrite(frame_path, frame)
-        frame_paths.append(frame_path)
-    
-    frame_count += 1
+    # Initialize a dictionary to store the results for all frames
+    result = {'video_path': video_path}
 
-cap.release()
+    # Process specific frames: 5, 25
+    frame_numbers = {5, 25, 50, 75, 100}
+    frame_paths = []
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-if frame_paths:
-    extracted_text = recognition(frame_paths)
+        if frame_count in frame_numbers:
+            # Calculate crop dimensions
+            height, width = frame.shape[:2]
+            top_crop = int(height * 0.0781)
+            bottom_crop = int(height * 0.1875)
 
-    print("------------------")
-    print(json.dumps(extracted_text.dict(), indent=4, ensure_ascii=False))
-    print("------------------")
+            # Crop the frame
+            cropped_frame = frame[top_crop:height-bottom_crop, :]
 
-    result['frames_paths'] = frame_paths
-    result['full_text'] = extracted_text.full_text
-    result['text_hook'] = extracted_text.text_hook
+            # Calculate new dimensions for resizing
+            new_height = 512
+            aspect_ratio = cropped_frame.shape[1] / cropped_frame.shape[0]
+            new_width = int(new_height * aspect_ratio)
 
-# Append the result to the list
-results.append(result)
+            # Resize the cropped frame
+            resized_frame = cv2.resize(cropped_frame, (new_width, new_height))
+
+            # Save the processed frame
+            frame_path = f'texthook/frame_{frame_count}.png'
+            cv2.imwrite(frame_path, resized_frame)
+            frame_paths.append(frame_path)
+
+        frame_count += 1
+
+    cap.release()
+
+    if frame_paths:
+        extracted_text = recognition(frame_paths)
+
+        print("------------------")
+        print(json.dumps(extracted_text.dict(), indent=4, ensure_ascii=False))
+        print("------------------")
+
+        result['frames_paths'] = frame_paths
+        result['full_text'] = extracted_text.full_text
+        result['text_hook'] = extracted_text.text_hook
+
+    # Append the result to the list
+    results.append(result)
 
 # Define the path for the JSON file
 json_path = 'texthook/results.json'

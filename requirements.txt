@@ -14,4 +14,5 @@ python-dotenv
 Appium-Python-Client
 selenium
 uiautomator2
+opencv-python
 #pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
