@@ -276,7 +276,7 @@ def fetch_reels_shares(reels_data, driver, shares_filename, save_path_shares):
                             reshare_number = match.group(1)  # Извлекаем число
                             print(f"Reshare number: {reshare_number}")
                         else:
-                            reshare_number = "-1"
+                            reshare_number = 0
                             error = "ISSUE: NO RESHARES"
                             print(f"\033[91m{error}\033[0m")
 
@@ -285,11 +285,11 @@ def fetch_reels_shares(reels_data, driver, shares_filename, save_path_shares):
 
                     except Exception as e:
                         print(f"\033[91mОшибка при поиске элемента решера: {e}\033[0m")
-                        reshare_number = -1
+                        reshare_number = 0
 
                 except Exception as e:
                     print(f"\033[91mОшибка при открытии Reels: {e}\033[0m")
-                    reshare_number = -1
+                    reshare_number = 0
 
                 if not success and attempt == 0:  # Если первая попытка не удалась
                     print("\033[36mПервая попытка не удалась, повторяем...\033[0m")
@@ -424,7 +424,7 @@ def fetch_reels_shares_manual_INPROGRESS(links, driver, shares_filename, save_pa
                     logging.info(f"Найдено {len(child_elements)} дочерних элементов.")
 
                     # Перебор дочерних элементов для поиска "Reshare number is"
-                    reshare_number = "-1"
+                    reshare_number = "0"
                     for index, child in enumerate(child_elements):
                         content_desc = child.attrib.get("content-desc")  # Получаем атрибут content-desc
                         logging.info(f"Дочерний элемент {index + 1}/{len(child_elements)}: content-desc = {content_desc}")
@@ -455,7 +455,7 @@ def fetch_reels_shares_manual_INPROGRESS(links, driver, shares_filename, save_pa
                     #     reshare_number = match.group(1)  # Извлекаем число
                     #     print(f"Reshare number: {reshare_number}")
                     # else:
-                    #     reshare_number = "-1"
+                    #     reshare_number = 0
                     #     print("Reshare number not found")
 
                     # #Сохраняем данные в массив
@@ -469,11 +469,11 @@ def fetch_reels_shares_manual_INPROGRESS(links, driver, shares_filename, save_pa
 
                 except Exception as e:
                     print(f"Ошибка при поиске элемента решера: {e}")
-                    shares.append("-1")
+                    shares.append(0)
 
             except Exception as e:
                 print(f"Ошибка при открытии Reels: {e}")
-                shares.append("-1")
+                shares.append(0)
                             # Сохраняем промежуточные результаты
             #write a data after each reels
             os.makedirs(os.path.dirname(save_path_shares), exist_ok=True)
@@ -557,7 +557,7 @@ def fetch_reels_shares_manual(links, driver, shares_filename, save_path_shares):
                             reshare_number = match.group(1)  # Извлекаем число
                             print(f"Reshare number: {reshare_number}")
                         else:
-                            reshare_number = "-1"
+                            reshare_number = 0
                             print("Reshare number not found")
 
                         #Сохраняем данные в массив
@@ -567,11 +567,11 @@ def fetch_reels_shares_manual(links, driver, shares_filename, save_path_shares):
 
                     except Exception as e:
                         print(f"Ошибка при поиске элемента решера: {e}")
-                        shares.append("-1")
+                        shares.append(0)
 
                 except Exception as e:
                     print(f"Ошибка при открытии Reels: {e}")
-                    shares.append("-1")
+                    shares.append(0)
 
                 if not success and attempt == 0:  # Если первая попытка не удалась
                     print("Первая попытка не удалась, повторяем...")

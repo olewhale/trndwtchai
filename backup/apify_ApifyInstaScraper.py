@@ -50,25 +50,6 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
         "skipPinnedPosts":
         True  # Или True, если нужно пропускать закрепленные посты
     }
-
-        ###
-    #apidojo/instagram-scraper
-    ###
-
-    # Prepend "https://www.instagram.com/" to each link
-    username_links = [f"https://www.instagram.com/{user}" for user in usernames]   
-
-    run_input = {
-        "customMapFunction": "(object) => { return {...object} }",
-        "maxItems": 5000,
-        "startUrls": [username_links],
-        "until": start_of_day.strftime('%Y-%m-%d')
-    }
-
-    ###
-    #END____apidojo/instagram-scraper
-    ###
-
     print("Apify input created: " + str(run_input))
     
     #print("Локальные переменные:", json.dumps(locals(), default=str, ensure_ascii=False, indent=4))
@@ -76,7 +57,7 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
 
     # Запуск актора и ожидание его завершения
     try:
-        run = client.actor("apidojo/instagram-scraper").call(
+        run = client.actor("apify/instagram-post-scraper").call(
             run_input=run_input)
         dataset_items = client.dataset(
             run["defaultDatasetId"]).list_items().items
@@ -158,7 +139,6 @@ def reels_scrapper(links):
 
     print("-------links получены: " + str(links) + "\n")
     #reelslinks = links
-
     run_input = {
         "addParentData": False,
         "directUrls": links,
@@ -170,12 +150,6 @@ def reels_scrapper(links):
         "searchLimit": 1,
         "searchType": "hashtag"
     }
-    
-    ###
-    #END____apify_instagram-scraper
-    ###
-
-
     print("Apify input created: " + str(run_input))
 
     reelsData = []
@@ -242,9 +216,9 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     reelsData = []
     # Фильтруем только рилсы (type='Video'), которые попадают в целевые сутки (позавчера)
     for item in dataset_items:
-        if 'isVideo' in item and item['isVideo'] == True:
+        if 'type' in item and item['type'] == 'Video':
             # Парсим время публикации
-            post_time = datetime.strptime(item['createdAt'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
+            post_time = datetime.strptime(item['timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ").date()  # Получаем только дату
             #print(post_time)
             # Проверяем, входит ли пост в диапазон целевых дат
             if start_of_day <= post_time <= end_of_day:
@@ -256,19 +230,14 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     }
 
     # Фильтруем рилсы
-    filtered_reels = []
-    for reel in reelsData:
-        username = reel.get('owner', {}).get('username', '')  # Исправлено 'onwer' -> 'owner'
-        play_count = reel.get('video', {}).get('playCount', 0)
+    filtered_reels = [
+        reel for reel in reelsData
+        if (reel['inputUrl'].split('/')[-1] in username_limits and 
+            reel.get('videoPlayCount') is not None and  # Проверка на None
+            reel.get('videoPlayCount', 0) >= username_limits[reel['inputUrl'].split('/')[-1]])
+    ]
 
-        if username in username_limits and play_count >= username_limits[username]:
-            filtered_reels.append(reel)
-        else:
-            # Если username отсутствует в username_limits, добавляем его и включаем рилс в список
-            username_limits.setdefault(username, 0)
-            filtered_reels.append(reel)
-
-    # CUSTOM FILTER - НЕ БУДЕТ РАБОТАТЬ, ТАК КАК ЗАМЕНЕН ACTOR APIFY!!!
+    # CUSTOM FILTER
     # filtered_reels = [
     #     reel for reel in reelsData
     #     if (reel['inputUrl'].split('/')[-1] in username_limits and 
@@ -280,7 +249,7 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     sorted_data = sorted(
         filtered_reels,
         key=lambda x: (
-            x.get('createdAt', 0)  # Используем 0 в качестве значения по умолчанию для timestamp, если он отсутствует
+            x.get('timestamp', 0)  # Используем 0 в качестве значения по умолчанию для timestamp, если он отсутствует
         )
     )
 
@@ -358,51 +327,45 @@ def extracted_reels_data_maker(data):
             # Convert this format 2024-12-08T20:51:49.000Z to this 2024-12-06 00:57:56
             #print(f"time: {entry.get('timestamp')}")
             formatted_timestamp = datetime.strptime(
-                str(entry.get('createdAt')),
+                str(entry.get('timestamp')),
                 '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
             #print(f"time: {formatted_timestamp}")
             #convert this format 2024-12-08T20:51:49.000Z to this 2024-12-06 00:57:56
             
-            #это нужно, чтобы убрать сокриэйтеров рилса - ПОСЛЕ ДОБАВЛЕНИЯ нового эктора убрал эту функцию
-            #username_real = entry.get('inputUrl').split('/')[-1]
-            username_real = entry.get('owner', {}).get('username','')
-            # Prepend "https://www.instagram.com/" to each link
-            username_link = f"https://www.instagram.com/{username_real}"   
+            #это нужно, чтобы убрать сокриэйтеров рилса
+            username_real = entry.get('inputUrl').split('/')[-1]
 
-            comments_count = float(entry.get('commentCount', 0) or 0)
-            likes_count = float(entry.get('likeCount', 0) or 0)
-            video_play_count = float(entry.get('video', {}).get('playCount','') or 1)  # Avoid division by zero
+            comments_count = float(entry.get('commentsCount', 0) or 0)
+            likes_count = float(entry.get('likesCount', 0) or 0)
+            video_play_count = float(entry.get('videoPlayCount', 1)
+                                     or 1)  # Avoid division by zero
             if likes_count != -1:
                 er_commlike = str(
                     round((comments_count + likes_count) / video_play_count,
                           10))
             else:
                 er_commlike = 0
-                
 
         except (ValueError, TypeError) as e:
             print(f"Error calculating engagement: {e}")
             er_commlike = 0
 
-
-
-
         extracted_entry = {
-            'account_url': username_link,
+            'account_url': entry.get('inputUrl'),
             'username': username_real,
             'url': entry.get('url'),
             'timestamp': formatted_timestamp,
-            'videoUrl': entry.get('video', {}).get('url',''),
+            'videoUrl': entry.get('videoUrl'),
             'shortCode': entry.get('shortCode'),
             'caption': entry.get('caption'),
-            'commentsCount': comments_count,
-            'likesCount': likes_count,
+            'commentsCount': entry.get('commentsCount'),
+            'likesCount': entry.get('likesCount'),
             'collectCount': -1,
-            'shareCount': 0,
-            'videoPlayCount': video_play_count,
-            'videoDuration': entry.get('video', {}).get('duration', 0),
+            'shareCount': entry.get('shareCount'),
+            'videoPlayCount': entry.get('videoPlayCount'),
+            'videoDuration': entry.get('videoDuration'),
             'er_commlike': er_commlike,
-            'musicInfo': str(entry.get("audio", {}).get("artist", "") + " - " + entry.get("audio", {}).get("title", ""))
+            'musicInfo': str(entry.get("musicInfo", {}).get("artist_name", "") + " - " + entry.get("musicInfo", {}).get("song_name", ""))
         }
         extracted_data.append(extracted_entry)
 
