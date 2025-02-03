@@ -259,7 +259,7 @@ def process_reel(shortCode, duration, transcript_data, output_filename, model):
         transcript_data[shortCode]["audio_path"] = audio_path
 
         # Определяем транскрипцию в зависимости от длительности
-        transcription = transcribe_audio(audio_path, model) if duration <= 250 else None
+        transcription = transcribe_audio(audio_path, model) if duration <= 300 else None
 
         # if duration <= 250:
         #     print("\033[91m" + str("МЕНЬШЕ 250") + "\033[0m")
