@@ -230,20 +230,20 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     }
 
     # Фильтруем рилсы
-    # filtered_reels = [
-    #     reel for reel in reelsData
-    #     if (reel['inputUrl'].split('/')[-1] in username_limits and 
-    #         reel.get('videoPlayCount') is not None and  # Проверка на None
-    #         reel.get('videoPlayCount', 0) >= username_limits[reel['inputUrl'].split('/')[-1]])
-    # ]
-
-    # CUSTOM FILTER
     filtered_reels = [
         reel for reel in reelsData
         if (reel['inputUrl'].split('/')[-1] in username_limits and 
             reel.get('videoPlayCount') is not None and  # Проверка на None
-            reel.get('videoPlayCount', 0) >= 10000 and reel.get('videoPlayCount', 0) < 30000)
+            reel.get('videoPlayCount', 0) >= username_limits[reel['inputUrl'].split('/')[-1]])
     ]
+
+    # CUSTOM FILTER
+    # filtered_reels = [
+    #     reel for reel in reelsData
+    #     if (reel['inputUrl'].split('/')[-1] in username_limits and 
+    #         reel.get('videoPlayCount') is not None and  # Проверка на None
+    #         reel.get('videoPlayCount', 0) >= 10000 and reel.get('videoPlayCount', 0) < 30000)
+    # ]
 
     # Сортировка только по 'timestamp'
     sorted_data = sorted(

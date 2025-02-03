@@ -208,10 +208,6 @@ COLUMNS_CONFIG = {
             "value_func": lambda item, row_n, i2excel, name2idx: item["original_script"].get("hook", "")
         },
         {
-            "name": "empty",
-            "value_func": lambda item, row_n, i2excel, name2idx: ""
-        },
-        {
             "name": "caption",
             "value_func": lambda item, row_n, i2excel, name2idx: item.get("caption", "")
         },
@@ -221,8 +217,16 @@ COLUMNS_CONFIG = {
                 f'=len(INDIRECT("{col_index_to_excel_name(name2idx["caption"])}"&ROW()))'
         },
         {
+            "name": "followers",
+            "value_func": lambda item, row_n, i2excel, name2idx: ""
+        },
+        {
             "name": "views",
             "value_func": lambda item, row_n, i2excel, name2idx: item.get("videoPlayCount", "")
+        },
+        {
+            "name": "er_followers-views",
+            "value_func": lambda item, row_n, i2excel, name2idx: ""
         },
         {
             "name": "likes",

@@ -85,9 +85,7 @@ class RewritedScript(BaseModel):
 
 
 
-def spez_common_script(post_text, caption, language):
-
-  language = 'русский'
+def spez_common_script(post_text, caption):
 
   system_role = '''
 #ROLE
