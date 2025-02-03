@@ -40,12 +40,13 @@ def get_table_data_as_json(account, list_name):
         # Convert records to JSON format, filtering out rows with "off" triggers
         users_data = []
         for record in records:
+            #print(record)
             if record.get("trigger") == "on":
                 try:
                     user_data = {
                         "username": record.get("username"),
                         "viewsFilter":
-                        int(record.get("viewsFilter_K", 0)) * 1000,
+                        int(record.get("viewsFilter_K", 0)),
                         "reels_count": int(record.get("reels_count", 0))
                     }
                     users_data.append(user_data)
@@ -257,8 +258,8 @@ COLUMNS_CONFIG = {
         {
             "name": "ER_shares_views",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                '=IF(OR(INDIRECT("P"&ROW())="", INDIRECT("K"&ROW())="", INDIRECT("P"&ROW())="-", NOT(ISNUMBER(INDIRECT("P"&ROW())))), '
-                '"NoN", INDIRECT("P"&ROW())/INDIRECT("K"&ROW()))'
+                '=IF(OR(INDIRECT("Q"&ROW())="", INDIRECT("K"&ROW())="", INDIRECT("Q"&ROW())="-", NOT(ISNUMBER(INDIRECT("Q"&ROW())))), '
+                '"NoN", INDIRECT("Q"&ROW())/INDIRECT("K"&ROW()))'
             )
         },
         {

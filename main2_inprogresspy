@@ -96,7 +96,6 @@ def download_single_video(item, save_directory, scraping_type, host_list=None):
     print()
     shortCode = item.get('shortCode')
     original_url = item.get('videoUrl')
-    duration = item.get('videoDuration')
     if not (shortCode and original_url):
         return (shortCode, None)
 
@@ -127,8 +126,7 @@ def download_single_video(item, save_directory, scraping_type, host_list=None):
         reel_info = {
             "video_path": file_path,
             "audio_path": None,
-            "transcription": None,
-            "duration": duration
+            "transcription": None
         }
         return (shortCode, reel_info)
     else:
@@ -183,8 +181,6 @@ def download_videos(data, scraping_type):
                                      save_directory=save_directory, 
                                      scraping_type=scraping_type,
                                      host_list=host_list)
-            print(future)
-            
             futures.append(future)
 
         # tqdm + as_completed для красивой полоски прогресса
@@ -193,8 +189,7 @@ def download_videos(data, scraping_type):
             shortCode, info = fut.result()  # (shortCode, {video_path, ...} или None)
             if shortCode and info:
                 reel_data[shortCode] = info
-        # for x in reel_data:
-        #     print("\033[91m" + str(x) + "\033[0m")
+
     return reel_data
 
 
@@ -251,23 +246,17 @@ def transcribe_audio(audio_path, model):
         return None
 
 
-def process_reel(shortCode, duration, transcript_data, output_filename, model):
+def process_reel(shortCode, transcript_data, output_filename, model):
     video_path = transcript_data[shortCode]["video_path"]
     audio_path = convert_video_to_audio(video_path)
-
     if audio_path:
         transcript_data[shortCode]["audio_path"] = audio_path
-
-        # Определяем транскрипцию в зависимости от длительности
-        transcription = transcribe_audio(audio_path, model) if duration <= 250 else None
-
-        # if duration <= 250:
-        #     print("\033[91m" + str("МЕНЬШЕ 250") + "\033[0m")
-        # else:
-        #     print("\033[91m" + str("БОЛЬШЕ 250") + "\033[0m")
-
-        # Устанавливаем транскрипцию или сообщение об ошибке
-        transcript_data[shortCode]["transcription"] = transcription if transcription else "Ошибка транскрибации"
+        transcription = transcribe_audio(audio_path, model)
+        if transcription:
+            transcript_data[shortCode]["transcription"] = transcription
+        else:
+            transcript_data[shortCode][
+                "transcription"] = "Ошибка транскрибации"
     else:
         transcript_data[shortCode]["transcription"] = "Ошибка конвертации"
 
@@ -336,10 +325,10 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
       - Возвращает reelsData, extracted_data
     """
     
-    debug = 1
+    debug = 0
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/26/pblaunch_database_20250203_184815.json", "r", encoding="utf-8") as file:
+        with open("db/16/damir_database_20250203_130347.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
@@ -466,13 +455,8 @@ def task_02_transcription(extracted_data, account, date_time_str, scraping_type)
 
     # Цикл транскрибации
     for shortCode in tqdm(transcript_data, desc="Процесс транскрибации", unit="рилс"):
-        
-        video_info = transcript_data[shortCode]  # Получаем словарь по ключу shortCode
-        duration = video_info.get('duration')
-
         try:
             transcript_data[shortCode] = process_reel(shortCode,
-                                                      duration,
                                                       transcript_data,
                                                       save_path_transcript,
                                                       model)

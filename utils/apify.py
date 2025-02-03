@@ -23,7 +23,7 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
     # Инициализируем клиента Apify
     APIFY_API = os.getenv('APIFY_API')
     #client = ApifyClient(APIFY_API)
-    client = ApifyClient("apify_api_Mh8rUvYzbCNWJJbHyh8okswsRTA39z1cA3BD")
+    client = ApifyClient("apify_api_3hqO6WcXDHuV5GFdxzGJTxowGyjaTm4nMK7H")
 
 
     # Рассчитываем целевые дни
@@ -45,7 +45,7 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
     
     run_input = {
         "username": usernames,
-        "resultsLimit": 40,
+        "resultsLimit": 70,
         "onlyPostsNewerThan": start_of_day.strftime('%Y-%m-%d'),
         "skipPinnedPosts":
         True  # Или True, если нужно пропускать закрепленные посты
