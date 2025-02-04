@@ -26,6 +26,7 @@ from openai import OpenAI
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
+#print(f"\033[91m STRANGE \033[0m")
 print('SERVER STARTED')
 
 # Загружаем переменные из .env
@@ -82,6 +83,7 @@ def attempt_download(video_url, save_path):
         return False
 
 def download_single_video(item, save_directory, scraping_type, host_list=None):
+    
     """
     Универсальная функция скачивания ОДНОГО видео для Instagram или TikTok.
 
@@ -93,47 +95,60 @@ def download_single_video(item, save_directory, scraping_type, host_list=None):
     
     Возвращает (shortCode, reel_info) или (shortCode, None)
     """
-    print()
-    shortCode = item.get('shortCode')
-    original_url = item.get('videoUrl')
-    duration = item.get('videoDuration')
-    if not (shortCode and original_url):
-        return (shortCode, None)
+    try:
+        shortCode = item.get('shortCode')
+        original_url = item.get('videoUrl')
+        #print(f"\033[91m {shortCode} \033[0m")
 
-    video_file_name = f'{shortCode}.mp4'
-    file_path = os.path.join(save_directory, video_file_name)
+        duration = item.get('videoDuration') if item.get('videoDuration') != "NoVideo" else 0
 
-    if scraping_type == "instagram":
-        # 1) Пробуем скачать по оригинальной ссылке
-        success = attempt_download(original_url, file_path)
+        if not (shortCode and original_url):
+            return (shortCode, None)
 
-        # 2) Если неудача — пробуем fallback-хосты
-        if not success and host_list:
-            original_host = extract_host_from_url(original_url)
-            url_parts = original_url.split(original_host, maxsplit=1)
-            url_path = url_parts[1] if len(url_parts) > 1 else ""
 
-            for host in host_list:
-                if host != original_host:
-                    modified_url = f"https://{host}{url_path}"
-                    success = attempt_download(modified_url, file_path)
-                    if success:
-                        break
-    else:
-        # Для TikTok — просто одна попытка скачать
-        success = attempt_download(original_url, file_path)
+        video_file_name = f'{shortCode}.mp4'
+        file_path = os.path.join(save_directory, video_file_name)
 
-    if success:
-        reel_info = {
-            "video_path": file_path,
-            "audio_path": None,
-            "transcription": None,
-            "duration": duration
-        }
-        return (shortCode, reel_info)
-    else:
-        print(f"Не удалось скачать видео для шорткода: {shortCode}")
-        return (shortCode, None)
+        success = False  # ✅ Initialize the variable to prevent errors
+
+        if scraping_type == "instagram":
+
+            # 1) Пробуем скачать по оригинальной ссылке
+            success = attempt_download(original_url, file_path)
+
+            # 2) Если неудача — пробуем fallback-хосты
+            if not success and host_list:
+                print('TRYING DOWNLOAD AGAIN -----')
+                original_host = extract_host_from_url(original_url)
+                url_parts = original_url.split(original_host, maxsplit=1)
+                url_path = url_parts[1] if len(url_parts) > 1 else ""
+
+                for host in host_list:
+                    if host != original_host:
+                        modified_url = f"https://{host}{url_path}"
+                        success = attempt_download(modified_url, file_path)
+                        if success:
+                            break
+        elif scraping_type == "tiktok":
+            # Для TikTok — просто одна попытка скачать
+            success = attempt_download(original_url, file_path)
+        else:
+            print('CANT DOWNLOAD VIDEO FILE')
+
+        if success:
+            reel_info = {
+                "video_path": file_path,
+                "audio_path": None,
+                "transcription": None,
+                "duration": duration
+            }
+            return (shortCode, reel_info)
+        else:
+            print(f"Не удалось скачать видео для шорткода: {shortCode}")
+            return (shortCode, None)
+    except Exception as e:
+        print(f"Ошибка при загрузке {item.get('shortCode')}: {e}")
+        return (shortCode, None)  
 
 def download_videos(data, scraping_type):
     """
@@ -176,6 +191,7 @@ def download_videos(data, scraping_type):
     max_workers = 10  # подбирайте число потоков
 
     futures = []
+    print("---------- HERE WE GO ----------")
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         for item in data:
             future = executor.submit(download_single_video, 
@@ -183,7 +199,6 @@ def download_videos(data, scraping_type):
                                      save_directory=save_directory, 
                                      scraping_type=scraping_type,
                                      host_list=host_list)
-            print(future)
             
             futures.append(future)
 
@@ -337,9 +352,10 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
     """
     
     debug = 1
+
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/26/pblaunch_database_20250203_184815.json", "r", encoding="utf-8") as file:
+        with open("db/4/vartsergey_database_20250204_203435.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
@@ -441,6 +457,10 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
     # Сохраняем reelsData в JSON (как в вашем скрипте)
     with open(save_path_apify, "w", encoding="utf-8") as file:
         json.dump(reelsData, file, ensure_ascii=False, indent=4)
+    
+    # Сохраняем reelsData в JSON (как в вашем скрипте)
+    with open(str(save_path_apify + "_extractedData"), "w", encoding="utf-8") as file:
+        json.dump(extracted_data, file, ensure_ascii=False, indent=4)
 
     return reelsData, extracted_data
 
@@ -452,7 +472,7 @@ def task_02_transcription(extracted_data, account, date_time_str, scraping_type)
     """
     # Шаг 1: скачиваем видео
     transcript_data = download_videos(extracted_data, scraping_type)
-
+    #sys.exit()
     # Шаг 2: путь для сохранения транскриптов
     output_filename = f"{account['username']}_transcriptions_{date_time_str}.json"
     save_path_transcript = os.path.join('db', str(account['id']), output_filename)
@@ -460,6 +480,7 @@ def task_02_transcription(extracted_data, account, date_time_str, scraping_type)
     # Пустой файл
     with open(save_path_transcript, "w", encoding="utf-8") as file:
         json.dump("", file, ensure_ascii=False, indent=4)
+        #json.dump({"transcriptions": []}, file, ensure_ascii=False, indent=4)
 
     # Инициализация модели
     model = WhisperModel("small", device="cuda", compute_type="float16")

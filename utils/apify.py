@@ -23,7 +23,7 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
     # Инициализируем клиента Apify
     APIFY_API = os.getenv('APIFY_API')
     #client = ApifyClient(APIFY_API)
-    client = ApifyClient("apify_api_3hqO6WcXDHuV5GFdxzGJTxowGyjaTm4nMK7H")
+    client = ApifyClient("apify_api_yWpkjSErkoE8elqnfrRcQAjwNmJPc92UqMym")
 
 
     # Рассчитываем целевые дни
@@ -42,14 +42,14 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
         item.get('username') for item in request_dict
         if isinstance(item, dict)
     ]
-    
-    run_input = {
-        "username": usernames,
-        "resultsLimit": 70,
-        "onlyPostsNewerThan": start_of_day.strftime('%Y-%m-%d'),
-        "skipPinnedPosts":
-        True  # Или True, если нужно пропускать закрепленные посты
-    }
+    # apify actor
+    # run_input = {
+    #     "username": usernames,
+    #     "resultsLimit": 70,
+    #     "onlyPostsNewerThan": start_of_day.strftime('%Y-%m-%d'),
+    #     "skipPinnedPosts":
+    #     True  # Или True, если нужно пропускать закрепленные посты
+    # }
 
         ###
     #apidojo/instagram-scraper
@@ -61,7 +61,7 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
     run_input = {
         "customMapFunction": "(object) => { return {...object} }",
         "maxItems": 5000,
-        "startUrls": [username_links],
+        "startUrls": username_links,
         "until": start_of_day.strftime('%Y-%m-%d')
     }
 
@@ -261,6 +261,10 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
         username = reel.get('owner', {}).get('username', '')  # Исправлено 'onwer' -> 'owner'
         play_count = reel.get('video', {}).get('playCount', 0)
 
+        # Skip this reel if it contains 'noResults'
+        if 'noResults' in reel:
+            continue  
+
         if username in username_limits and play_count >= username_limits[username]:
             filtered_reels.append(reel)
         else:
@@ -372,12 +376,20 @@ def extracted_reels_data_maker(data):
             comments_count = float(entry.get('commentCount', 0) or 0)
             likes_count = float(entry.get('likeCount', 0) or 0)
             video_play_count = float(entry.get('video', {}).get('playCount','') or 1)  # Avoid division by zero
+
             if likes_count != -1:
                 er_commlike = str(
                     round((comments_count + likes_count) / video_play_count,
                           10))
             else:
                 er_commlike = 0
+
+            if entry.get("audio") is not None:
+                musicInfo = str(entry.get("audio", {}).get("artist", "") + " - " + entry.get("audio", {}).get("title", ""))
+            else:
+                musicInfo = ""
+
+            
                 
 
         except (ValueError, TypeError) as e:
@@ -393,7 +405,7 @@ def extracted_reels_data_maker(data):
             'url': entry.get('url'),
             'timestamp': formatted_timestamp,
             'videoUrl': entry.get('video', {}).get('url',''),
-            'shortCode': entry.get('shortCode'),
+            'shortCode': entry.get('code'),
             'caption': entry.get('caption'),
             'commentsCount': comments_count,
             'likesCount': likes_count,
@@ -402,7 +414,7 @@ def extracted_reels_data_maker(data):
             'videoPlayCount': video_play_count,
             'videoDuration': entry.get('video', {}).get('duration', 0),
             'er_commlike': er_commlike,
-            'musicInfo': str(entry.get("audio", {}).get("artist", "") + " - " + entry.get("audio", {}).get("title", ""))
+            'musicInfo': musicInfo
         }
         extracted_data.append(extracted_entry)
 

@@ -31,7 +31,7 @@ def get_table_data_as_json(account, list_name):
 
         # Define the expected headers
         expected_headers = [
-            "username", "trigger", "viewsFilter_K", "reels_count"
+            "username", "trigger", "viewsFilter", "reels_count"
         ]
 
         # Get all records with expected headers
@@ -46,7 +46,7 @@ def get_table_data_as_json(account, list_name):
                     user_data = {
                         "username": record.get("username"),
                         "viewsFilter":
-                        int(record.get("viewsFilter_K", 0)),
+                        int(record.get("viewsFilter", 0)),
                         "reels_count": int(record.get("reels_count", 0))
                     }
                     users_data.append(user_data)
