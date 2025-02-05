@@ -6,8 +6,14 @@ import multiprocessing
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import json
 
-#emulator -avd Pixel_8_Pro_NoWin -no-window -no-boot-anim -no-snapshot
-#appium --allow-insecure adb_shell
+# emulator -avd Pixel_8_Pro_NoWin -no-window -no-boot-anim -no-snapshot
+# appium --allow-insecure adb_shell
+
+#
+# install instagram
+# adb install C:\AAA\Projects\trndwch\materials\com.instagram.android_284.0.0.22.85-368407143_minAPI28(x86_64)(nodpi)_apkmirror.com.apk
+# download from here if needed - https://www.apkmirror.com/apk/instagram/instagram-instagram/instagram-instagram-359-0-0-59-89-release/instagram-359-0-0-59-89-21-android-apk-download/
+#
 
 # Конфигурация
 APPIUM_PORT = 4723

@@ -351,11 +351,11 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
       - Возвращает reelsData, extracted_data
     """
     
-    debug = 1
+    debug = 0
 
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/4/vartsergey_database_20250204_203435.json", "r", encoding="utf-8") as file:
+        with open("db/0/olegmazunin_database_20250205_135018.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
@@ -771,7 +771,7 @@ def app_run(option="all", account_id=0, range_days="3-3", scraping_type="instagr
     elif switcher == "all":
         # For all accounts
         for account in table_list["accounts"]:
-            if account["subscription"] != "stop" and account["subscription"] != "free":
+            if account["subscription"] != "stop" and account["subscription"] != "free" and account["subscription"] != "2week":
                 process_data(account, range_days=range_days, scheme=0)
     elif switcher == "":
         #process_data(account, days=1, scheme=0)

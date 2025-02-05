@@ -301,7 +301,7 @@ def spez_rewriter_script(original, caption, language):
 #Твоя задача:
 ##Шаг1
 Придумай 5 хук для этого видео на основе TRANSCRIPTION(hook_original, content_original и call-to-action_original) и примеров вирусных Hook. Обязательно вывести все 5 придуманных хуков. Если hook_original = "-", то hook1 = '-'.
-  1. hook1: Перевод hook_original на {language} язык. Если его нет, ставим "-"
+  1. hook1: Переведи hook_original на {language} язык. Если его нет, ставим "-". Если hook_original уже на {language} языке, то оставляем его на {language} языке.
   2. hook2: Придумай на основе примеров лучших хуков из раздела "Примеры лучших хуков на русском" и смысла TRANSCRIPTION. Выбери подходящий. На {language} язык. 
   3. hook3: Придумай на основе примеров лучших хуков из раздела "Примеры лучших хуков на русском" и смысла TRANSCRIPTION. Выбери подходящий. На {language} язык. 
   4. hook4: Придумай на основе примеров лучших хуков из раздела "Примеры лучших хуков на русском" и смысла TRANSCRIPTION. Выбери подходящий. На {language} язык. 

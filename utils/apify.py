@@ -259,7 +259,7 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     filtered_reels = []
     for reel in reelsData:
         username = reel.get('owner', {}).get('username', '')  # Исправлено 'onwer' -> 'owner'
-        play_count = reel.get('video', {}).get('playCount', 0)
+        play_count = reel.get('video', {}).get('playCount', 0) #ВОЗМОЖНО ЭТО ПЛОХО ОТРАБАТЫВАЕТ И ВЫСТАВЛЯЕТ 0
 
         # Skip this reel if it contains 'noResults'
         if 'noResults' in reel:
@@ -267,11 +267,16 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
 
         if username in username_limits and play_count >= username_limits[username]:
             filtered_reels.append(reel)
-        else:
+        #elif play_count >= 20000:
+        elif username not in username_limits and play_count >= 20000:
+            print(f"\033[94mReels from user that not in database - {reel.get('owner', {}).get('username', 'NOOOOOOO')} - views:  {reel.get('video', {}).get('playCount', 0)}\033[0m")
             # Если username отсутствует в username_limits, добавляем его и включаем рилс в список
             username_limits.setdefault(username, 0)
             filtered_reels.append(reel)
 
+    # for x in filtered_reels:
+    #     print(x.get('video', {}).get('playCount', "Not"))
+    sys.exit()
     # CUSTOM FILTER - НЕ БУДЕТ РАБОТАТЬ, ТАК КАК ЗАМЕНЕН ACTOR APIFY!!!
     # filtered_reels = [
     #     reel for reel in reelsData

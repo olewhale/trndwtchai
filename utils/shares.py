@@ -276,7 +276,7 @@ def fetch_reels_shares(reels_data, driver, shares_filename, save_path_shares):
                             reshare_number = match.group(1)  # Извлекаем число
                             print(f"Reshare number: {reshare_number}")
                         else:
-                            reshare_number = 0
+                            reshare_number = -1
                             error = "ISSUE: NO RESHARES"
                             print(f"\033[91m{error}\033[0m")
 
@@ -285,11 +285,11 @@ def fetch_reels_shares(reels_data, driver, shares_filename, save_path_shares):
 
                     except Exception as e:
                         print(f"\033[91mОшибка при поиске элемента решера: {e}\033[0m")
-                        reshare_number = 0
+                        reshare_number = -1
 
                 except Exception as e:
                     print(f"\033[91mОшибка при открытии Reels: {e}\033[0m")
-                    reshare_number = 0
+                    reshare_number = -1
 
                 if not success and attempt == 0:  # Если первая попытка не удалась
                     print("\033[36mПервая попытка не удалась, повторяем...\033[0m")
