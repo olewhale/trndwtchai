@@ -274,9 +274,8 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
             username_limits.setdefault(username, 0)
             filtered_reels.append(reel)
 
-    # for x in filtered_reels:
-    #     print(x.get('video', {}).get('playCount', "Not"))
-    sys.exit()
+
+
     # CUSTOM FILTER - НЕ БУДЕТ РАБОТАТЬ, ТАК КАК ЗАМЕНЕН ACTOR APIFY!!!
     # filtered_reels = [
     #     reel for reel in reelsData
