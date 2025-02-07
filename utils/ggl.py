@@ -329,7 +329,7 @@ COLUMNS_CONFIG = {
         },
         {
             "name": "er_followers",
-            "value_func": lambda item, row_n, i2excel, name2idx: (f'=TO_PERCENT({item.get("er_followers", "-")})')
+            "value_func": lambda item, row_n, i2excel, name2idx: item.get("er_followers", "")
         },
         {
             "name": "likes",

@@ -3,6 +3,7 @@ from apify_client import ApifyClient
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import pytz
+import math
 
 # Загружаем переменные из .env
 load_dotenv()
@@ -276,6 +277,8 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
 
 
 
+
+
     # CUSTOM FILTER - НЕ БУДЕТ РАБОТАТЬ, ТАК КАК ЗАМЕНЕН ACTOR APIFY!!!
     # filtered_reels = [
     #     reel for reel in reelsData
@@ -325,12 +328,23 @@ def tiktok_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end
         for entry in request_dict
     }
 
-    # Фильтруем рилсы
+    # Фильтруем видео
     filtered_reels = [
         reel for reel in reelsData
         if (reel['channel']['url'].split('@')[1].split('/')[0] in username_limits and 
             reel['views'] >= username_limits[reel['channel']['url'].split('@')[1].split('/')[0]])
     ]
+
+    # Фильтруем видео
+    # filtered_reels = [
+    #     reel for reel in reelsData
+    #     if reel.get('likes', 0) >= 10000
+    # ]
+
+    # for reel in filtered_reels:
+    #     print(f"{reel['channel']['username']} - {reel.get('likes', 0)}")
+
+    # sys.exit()
 
     # Сортировка только по 'timestamp'
     sorted_data = sorted(
@@ -441,7 +455,7 @@ def extracted_tiktok_data_maker(data):
             formatted_timestamp = datetime.strptime(
                 str(entry.get('uploadedAtFormatted')),
                 '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
-            followers_count = float(entry.get("channel", {}).get("followers", 0))
+            followers_count = entry.get("channel", {}).get("followers", 0)
             comments_count = float(entry.get('comments', 0))
             likes_count = float(entry.get('likes', 0))
             video_play_count = float(entry.get('views', 1))
@@ -467,8 +481,8 @@ def extracted_tiktok_data_maker(data):
             else:
                 er_shares = 0
             
-            if entry["channel"]["followers"] != 0 and entry.get('views') != 0:
-                er_followers = str( round( video_play_count / followers_count , 10))
+            if followers_count > 0 and entry.get('views', 0) > 0:
+                er_followers = str(round(math.log(1 + video_play_count) / math.log(1 + followers_count), 10))
             else:
                 er_followers = 0
 

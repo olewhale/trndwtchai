@@ -355,7 +355,7 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
 
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/0/olegmazunin_database_20250205_135018.json", "r", encoding="utf-8") as file:
+        with open("db/28/dataset_tiktok-scraper_2025-02-06_15-41-06-348.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
