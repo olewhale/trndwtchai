@@ -219,7 +219,7 @@ COLUMNS_CONFIG = {
         },
         {
             "name": "followers",
-            "value_func": lambda item, row_n, i2excel, name2idx: ""
+            "value_func": lambda item, row_n, i2excel, name2idx: item.get("followersCount", "")
         },
         {
             "name": "views",
@@ -227,7 +227,7 @@ COLUMNS_CONFIG = {
         },
         {
             "name": "er_followers-views",
-            "value_func": lambda item, row_n, i2excel, name2idx: ""
+            "value_func": lambda item, row_n, i2excel, name2idx: ( f'=TO_PERCENT({item.get("er_followers", "-")})')
         },
         {
             "name": "likes",
@@ -257,10 +257,7 @@ COLUMNS_CONFIG = {
         },
         {
             "name": "ER_shares_views",
-            "value_func": lambda item, row_n, i2excel, name2idx: (
-                '=IF(OR(INDIRECT("Q"&ROW())="", INDIRECT("K"&ROW())="", INDIRECT("Q"&ROW())="-", NOT(ISNUMBER(INDIRECT("Q"&ROW())))), '
-                '"NoN", INDIRECT("Q"&ROW())/INDIRECT("K"&ROW()))'
-            )
+            "value_func": lambda item, row_n, i2excel, name2idx: ( f'=TO_PERCENT({item.get("er_shares", "-")})')
         },
         {
             "name": "duration",

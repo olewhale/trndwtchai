@@ -747,7 +747,14 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
         for item in results_final:
             shortCode = item.get('shortCode')
             if shortCode in shares_results:
+
+                if shares_results[shortCode] > 0 and item.get('views') > 0:
+                    er_shares = str( round( shares_results[shortCode] / item.get('views'), 10))
+                else:
+                    er_shares = 0
+                    
                 item['shareCount'] = shares_results[shortCode]
+                item['er_shares'] = er_shares
 
     # 06 - WRITE DATA TO GOOGLE SHEET
     task_06_write_data_to_gs(results_final, account, scheme, scraping_type, start_time)
