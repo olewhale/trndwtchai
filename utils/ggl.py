@@ -240,9 +240,9 @@ COLUMNS_CONFIG = {
         {
             "name": "er_commlike",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=TO_PERCENT({item.get("er_commlike", "-")})'
-                if item.get("er_commlike") != "-"
-                else "-"
+                f'=TO_PERCENT({item.get("er_commlike", "")})'
+                if item.get("er_commlike") != ""
+                else ""
             )
         },
         {
@@ -257,7 +257,7 @@ COLUMNS_CONFIG = {
         },
         {
             "name": "ER_shares_views",
-            "value_func": lambda item, row_n, i2excel, name2idx: ( f'=TO_PERCENT({item.get("er_shares", "-")})')
+            "value_func": lambda item, row_n, i2excel, name2idx: ( f'=TO_PERCENT({item.get("er_shares", "")})')
         },
         {
             "name": "duration",

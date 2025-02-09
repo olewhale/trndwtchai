@@ -462,6 +462,11 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
     with open(str(save_path_apify + "_extractedData"), "w", encoding="utf-8") as file:
         json.dump(extracted_data, file, ensure_ascii=False, indent=4)
 
+    # Сохраняем reelsData в JSON (как в вашем скрипте)
+    base_name = os.path.splitext(save_path_apify)[0]  # Убираем .json
+    with open(f"{base_name}_extractedData.json", "w", encoding="utf-8") as file:
+        json.dump(extracted_data, file, ensure_ascii=False, indent=4)
+
     return reelsData, extracted_data
 
 
@@ -748,8 +753,8 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
             shortCode = item.get('shortCode')
             if shortCode in shares_results:
 
-                if shares_results[shortCode] > 0 and item.get('views') > 0:
-                    er_shares = str( round( shares_results[shortCode] / item.get('views'), 10))
+                if shares_results[shortCode] > 0 and item.get('videoPlayCount') > 0:
+                    er_shares = float( round( shares_results[shortCode] / item.get('videoPlayCount'), 10))
                 else:
                     er_shares = 0
                     

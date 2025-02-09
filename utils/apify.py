@@ -397,7 +397,7 @@ def extracted_reels_data_maker(data):
             followers_сount = float(entry.get('owner', {}).get('followerCount','') or 1)
 
             if likes_count != -1:
-                er_commlike = str(
+                er_commlike = float(
                     round((comments_count + likes_count) / video_play_count,
                           10))
             else:
@@ -407,21 +407,15 @@ def extracted_reels_data_maker(data):
                 musicInfo = str(entry.get("audio", {}).get("artist", "") + " - " + entry.get("audio", {}).get("title", ""))
             else:
                 musicInfo = ""
-            
-            if likes_count != -1:
-                er_commlike = str(
-                    round((comments_count + likes_count) / video_play_count,
-                          10))
-            else:
-                er_commlike = 0
+
             
             # if entry.get('shares') != 0 and entry.get('views') != 0:
             #     er_shares = str( round( share_count / video_play_count, 10))
             # else:
             #     er_shares = 0
             
-            if followers_сount > 0 and entry.get('views', 0) > 0:
-                er_followers = str(round(math.log(1 + video_play_count) / math.log(1 + followers_сount), 10))
+            if followers_сount > 0 and video_play_count > 0:
+                er_followers = float(round(video_play_count / followers_сount), 10)
             else:
                 er_followers = 0
             

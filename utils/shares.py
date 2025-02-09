@@ -273,7 +273,7 @@ def fetch_reels_shares(reels_data, driver, shares_filename, save_path_shares):
                         match = re.search(r'content-desc="Reshare number is(\d+)"', page_source)
 
                         if match:
-                            reshare_number = match.group(1)  # Извлекаем число
+                            reshare_number = int(match.group(1))  # Извлекаем число
                             print(f"Reshare number: {reshare_number}")
                         else:
                             reshare_number = -1
