@@ -424,7 +424,7 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
             if not users_data:
                 print('No users')
                 return [], []
-            dataset_items = apify.tiktok_posts_scrapper(users_data, start_of_day, range_days=range_days)
+            dataset_items = apify.tiktok_posts_scrapper(users_data, account['search_type'], start_of_day, range_days=range_days)
 
             with open(save_path_apify_database, "w", encoding="utf-8") as f:
                 json.dump(dataset_items, f, ensure_ascii=False, indent=4)

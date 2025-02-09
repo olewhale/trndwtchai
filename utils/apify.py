@@ -91,7 +91,7 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
     #print(reelsData)
     return dataset_items
 
-def tiktok_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
+def tiktok_posts_scrapper(request_dict, search_type, start_of_day, days=3, range_days=None):
     # Загружаем переменные из .env
     load_dotenv()
     # Инициализируем клиента Apify
@@ -99,11 +99,31 @@ def tiktok_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
     #client = ApifyClient(APIFY_API)
     client = ApifyClient("apify_api_Mh8rUvYzbCNWJJbHyh8okswsRTA39z1cA3BD")
 
-    # Извлекаем список username
-    usernames = [
-        item.get('username') for item in request_dict
-        if isinstance(item, dict)
-    ]
+    if search_type == "username":
+        # Извлекаем список username
+        usernames = [
+            item.get('username') for item in request_dict
+            if isinstance(item, dict)
+        ]
+        
+        run_input = {
+            "maxItems": 5000,
+            "until": start_of_day.strftime('%Y-%m-%d'),
+            "usernames": usernames
+        }
+
+    elif search_type == "hashtag":
+        # Извлекаем список username
+        hashtags = [
+            item.get('hashtag') for item in request_dict #здесь берутся хэштеги. Надо будет поправить это.
+            if isinstance(item, dict)
+        ]
+        
+        run_input = {
+            "maxItems": 5000,
+            "dateRange": "THIS_WEEK",
+            "keywords": hashtags
+        } 
 
     '''
     run_input = {
@@ -123,11 +143,7 @@ def tiktok_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
         "maxProfilesPerQuery": 10
     }
     '''
-    run_input = {
-        "maxItems": 5000,
-        "until": start_of_day.strftime('%Y-%m-%d'),
-        "usernames": usernames
-    }
+
 
 
     print("Apify input created: " + str(run_input))
@@ -151,92 +167,6 @@ def tiktok_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
         print(f"Error processing users: {e}")
     #print(reelsData)
     return dataset_items
-
-
-def reels_scrapper(links):
-    # Initialize the ApifyClient with your API token
-    client = ApifyClient(os.environ['APIFY_API'])
-
-    print("-------links получены: " + str(links) + "\n")
-    #reelslinks = links
-
-    run_input = {
-        "addParentData": False,
-        "directUrls": links,
-        "enhanceUserSearchWithFacebookPage": False,
-        "isUserReelFeedURL": False,
-        "isUserTaggedFeedURL": False,
-        "resultsLimit": 200,
-        "resultsType": "posts",
-        "searchLimit": 1,
-        "searchType": "hashtag"
-    }
-    
-    ###
-    #END____apify_instagram-scraper
-    ###
-
-
-    print("Apify input created: " + str(run_input))
-
-    reelsData = []
-    # Запуск актора и ожидание его завершения
-    try:
-        run = client.actor("apify/instagram-scraper").call(run_input=run_input)
-        raw_data = client.dataset(run["defaultDatasetId"]).list_items().items
-
-        # Фильтрация элементов без ошибки и с исключением типа "slide"
-        reelsData = [
-            item for item in raw_data
-            if 'error' not in item and item.get('type') != 'Sidecar'
-        ]
-
-        # Выводим сообщение об ошибках, если они есть
-        for item in raw_data:
-            if 'error' in item:
-                print(
-                    f"Error in URL {item['url']}: {item['error']} - {item.get('errorDescription', 'No description')}"
-                )
-            elif item.get('type') == 'Sidecar':
-                print(f"Slide-type Reels found at URL {item['url']}")
-
-    except Exception as e:
-        print(f"Error processing users: {e}")
-    #print(json.dumps(reelsData, indent=4, ensure_ascii=False))
-    return reelsData
-
-
-def tiktok_scrapper(links):
-    # Initialize the ApifyClient with your API token
-    client = ApifyClient(os.environ['APIFY_API'])
-
-    print("-------links получены: " + str(links))
-    #reelslinks = links
-    run_input = {
-        "excludePinnedPosts": False,
-        "postURLs": links,
-        "resultsPerPage": 100,
-        "shouldDownloadCovers": False,
-        "shouldDownloadSlideshowImages": False,
-        "shouldDownloadSubtitles": False,
-        "shouldDownloadVideos": True,
-        "searchSection": "",
-        "maxProfilesPerQuery": 10
-    }
-
-    print("Apify input created: " + str(run_input))
-
-    videoData = []
-    # Запуск актора и ожидание его завершения
-    try:
-        run = client.actor("clockworks/free-tiktok-scraper").call(
-            run_input=run_input)
-        raw_data = client.dataset(run["defaultDatasetId"]).list_items().items
-
-    except Exception as e:
-        print(f"Error processing users: {e}")
-    #print(json.dumps(reelsData, indent=4, ensure_ascii=False))
-    return raw_data
 
 
 def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end_of_day):
@@ -310,7 +240,7 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     sortedReelsCount = len(sorted_data)
     return reelsData, sorted_data, sortedReelsCount
 
-def tiktok_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end_of_day):
+def tiktok_scrapper_filter_sorter(dataset_items, request_dict, search_type, start_of_day, end_of_day):
     reelsData = []
     # Фильтруем только рилсы (type='Video'), которые попадают в целевые сутки (позавчера)
     for item in dataset_items:
@@ -322,29 +252,33 @@ def tiktok_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end
             if start_of_day <= post_time <= end_of_day:
                 reelsData.append(item)
 
-    # Преобразуем request_dict в словарь для быстрого поиска, у меня тут появляется такой массив {'username_1': 2000, 'username_2':34000}
-    username_limits = {
-        entry['username']: entry['viewsFilter']
-        for entry in request_dict
-    }
 
-    # Фильтруем видео
-    filtered_reels = [
-        reel for reel in reelsData
-        if (reel['channel']['url'].split('@')[1].split('/')[0] in username_limits and 
-            reel['views'] >= username_limits[reel['channel']['url'].split('@')[1].split('/')[0]])
-    ]
 
-    # Фильтруем видео
-    # filtered_reels = [
-    #     reel for reel in reelsData
-    #     if reel.get('likes', 0) >= 10000
-    # ]
+    if search_type == "username":
+        # Преобразуем request_dict в словарь для быстрого поиска, у меня тут появляется такой массив {'username_1': 2000, 'username_2':34000}
+        username_limits = {
+            entry['username']: entry['viewsFilter']
+            for entry in request_dict
+        }   
 
-    # for reel in filtered_reels:
-    #     print(f"{reel['channel']['username']} - {reel.get('likes', 0)}")
+        # Фильтруем видео
+        filtered_reels = [
+            reel for reel in reelsData
+            if (reel['channel']['url'].split('@')[1].split('/')[0] in username_limits and 
+                reel['views'] >= username_limits[reel['channel']['url'].split('@')[1].split('/')[0]])
+        ]
+    elif search_type == "hashtag":
+        # Преобразуем request_dict в словарь для быстрого поиска, у меня тут появляется такой массив {'username_1': 2000, 'username_2':34000}
+        username_limits = {
+            entry['hashtag']: entry['likesFilter']
+            for entry in request_dict
+        }   
 
-    # sys.exit()
+        print(f"Filter for hashtags = {request_dict[0]['likesFilter']}")
+        filtered_reels = [
+            reel for reel in reelsData
+            if reel.get('likes', 0) >= request_dict[0]['likesFilter']
+        ]   
 
     # Сортировка только по 'timestamp'
     sorted_data = sorted(

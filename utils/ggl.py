@@ -31,7 +31,7 @@ def get_table_data_as_json(account, list_name):
 
         # Define the expected headers
         expected_headers = [
-            "username", "trigger", "viewsFilter", "reels_count"
+            "username", "hashtag", "trigger", "viewsFilter", "likesFilter" "reels_count"
         ]
 
         # Get all records with expected headers
@@ -43,12 +43,20 @@ def get_table_data_as_json(account, list_name):
             #print(record)
             if record.get("trigger") == "on":
                 try:
-                    user_data = {
-                        "username": record.get("username"),
-                        "viewsFilter":
-                        int(record.get("viewsFilter", 0)),
-                        "reels_count": int(record.get("reels_count", 0))
-                    }
+                    if account['search_type'] == 'username':
+                        user_data = {
+                            "username": record.get("username"),
+                            "viewsFilter":
+                            int(record.get("viewsFilter", 0)),
+                            "reels_count": int(record.get("reels_count", 0))
+                        }
+                    elif account['search_type'] == 'hashtag':
+                        user_data = {
+                            "hashtag": record.get("hashtag"),
+                            "likesFilter":
+                            int(record.get("likesFilter", 0)),
+                            "reels_count": int(record.get("reels_count", 0))
+                        }
                     users_data.append(user_data)
                 except ValueError:
                     print(f"Skipping row with invalid data: {record}")
