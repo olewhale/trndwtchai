@@ -30,15 +30,15 @@ def get_table_data_as_json(account, list_name):
         sheet = client.open_by_url(google_sheet_url).worksheet(list_name)
 
         # Define the expected headers
-        expected_headers = [
-            "username", "hashtag", "trigger", "viewsFilter", "likesFilter" "reels_count"
-        ]
+        all_headers = ["username", "hashtag", "trigger", "viewsFilter", "likesFilter", "reels_count"]
+        expected_headers = [header for header in all_headers if header in sheet.row_values(1)]  # Проверяем наличие заголовков
 
         # Get all records with expected headers
         records = sheet.get_all_records(expected_headers=expected_headers)
 
         # Convert records to JSON format, filtering out rows with "off" triggers
         users_data = []
+
         for record in records:
             #print(record)
             if record.get("trigger") == "on":
@@ -256,7 +256,7 @@ COLUMNS_CONFIG = {
         {
             "name": "virus_detector",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=IF(COUNT(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))) / (2 * STDEV(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))))'
+                f'=IF(COUNT(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))) / (2 * (STDEV(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))  + 0.0000000001)))'
             )
         },
         {
@@ -363,7 +363,7 @@ COLUMNS_CONFIG = {
         {
             "name": "virus_detector",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=IF(COUNT(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))) / (2 * STDEV(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))))'
+                f'=IF(COUNT(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))) / (2 * (STDEV(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))  + 0.0000000001)))'
             )
         },
         {

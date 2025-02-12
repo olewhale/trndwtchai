@@ -355,7 +355,7 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
 
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/28/dataset_tiktok-scraper_2025-02-06_15-41-06-348.json", "r", encoding="utf-8") as file:
+        with open("db/23/sternMeister_database_20250210_140603.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
@@ -378,11 +378,17 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
         start_of_day = (datetime.now() - timedelta(days=end_range)).date()
         end_of_day = (datetime.now() - timedelta(days=start_range)).date()
 
+
+    print(f"target_day - {target_day}")
+    print(f"start_of_day - {start_of_day}")
+    print(f"end_of_day - {end_of_day}")
+    print(f"range_days - {range_days}")
+
     # Подготовим переменные для итогов
     reelsData = []
     extracted_data = []
 
-
+    #sys.exit()
 
     # В зависимости от scraping_type:
     if scraping_type == "instagram":
@@ -437,7 +443,7 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
             return [], []
 
         reelsData, sorted_data, sortedReelsCount = apify.tiktok_scrapper_filter_sorter(
-            dataset_items, users_data, start_of_day, end_of_day
+            dataset_items, users_data, account['search_type'], start_of_day, end_of_day
         )
         if sortedReelsCount == 0:
             print('No new tiktok')

@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import pytz
 import math
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 # Загружаем переменные из .env
 load_dotenv()
@@ -18,7 +20,7 @@ def instagram_user_scrapper(request_dict):
     return None
 
 
-def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
+def instagram_posts_scrapper_old_10_02_2025(request_dict, start_of_day, days=3, range_days=None):
     # Загружаем переменные из .env
     load_dotenv()
     # Инициализируем клиента Apify
@@ -91,7 +93,95 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
     #print(reelsData)
     return dataset_items
 
-def tiktok_posts_scrapper(request_dict, search_type, start_of_day, days=3, range_days=None):
+def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None):
+    # Загружаем переменные из .env
+    #load_dotenv()
+    
+    # Инициализируем клиента Apify (синхронно)
+    APIFY_API = "apify_api_yWpkjSErkoE8elqnfrRcQAjwNmJPc92UqMym"
+    client = ApifyClient(APIFY_API)
+
+    # # Получаем информацию об аккаунте Apify
+    # try:
+    #     account_info = client.user().get()
+    #     print("Apify account username:", account_info.get("username"))
+    # except Exception as e:
+    #     print("Ошибка при получении информации об аккаунте:", e)
+    
+    # Рассчитываем даты для фильтрации
+    if range_days:
+        start_range, end_range = map(int, range_days.split('-'))
+        computed_start_of_day = (datetime.now() - timedelta(days=end_range)).date()
+        computed_end_of_day = (datetime.now() - timedelta(days=start_range)).date()
+    else:
+        target_day = datetime.now() - timedelta(days=days)
+        computed_start_of_day = target_day.date()
+        computed_end_of_day = (target_day + timedelta(days=1)).date()
+    
+    print("Computed start_of_day:", computed_start_of_day)
+    print("Computed end_of_day:", computed_end_of_day)
+    
+    # Извлекаем список username из request_dict
+    usernames = [item.get('username') for item in request_dict 
+                 if isinstance(item, dict) and item.get('username')]
+    if not usernames:
+        print("No usernames found in request_dict!")
+        return []
+    print("Usernames extracted:", usernames)
+    
+    # Преобразуем username в полные ссылки для Instagram
+    username_links = [f"https://www.instagram.com/{user}" for user in usernames]
+    print("Username links:", username_links)
+    
+    # Функция для разбиения списка на чанки заданного размера
+    def chunk_list(lst, chunk_size):
+        for i in range(0, len(lst), chunk_size):
+            yield lst[i:i + chunk_size]
+    
+    chunk_size = 20  # Можно менять размер чанка, если нужно
+    username_chunks = list(chunk_list(username_links, chunk_size))
+    print("Total chunks formed:", len(username_chunks))
+    
+    # Синхронная функция для вызова актора Apify для одного чанка
+    def run_actor_sync(chunk):
+        run_input = {
+            "customMapFunction": "(object) => { return {...object} }",
+            "maxItems": 1500,
+            "startUrls": chunk,
+            "until": computed_start_of_day.strftime('%Y-%m-%d')
+        }
+        print("Sending request with input:", run_input)
+        try:
+            run = client.actor("apidojo/instagram-scraper").call(run_input=run_input)
+            #print("Received run response:", run)
+            dataset_items = client.dataset(run["defaultDatasetId"]).list_items().items
+            print("Dataset items count:", len(dataset_items))
+            return dataset_items
+        except Exception as e:
+            print(f"[run_actor_sync] Error processing chunk {chunk}: {e}")
+            return []
+    
+    combined_results = []
+    # Запускаем задачи параллельно через ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        future_to_index = { executor.submit(run_actor_sync, chunk): idx 
+                            for idx, chunk in enumerate(username_chunks) }
+        for future in as_completed(future_to_index):
+            idx = future_to_index[future]
+            try:
+                result = future.result()
+                combined_results.extend(result)
+                print(f"Chunk {idx + 1}: {len(result)} items received.")
+            except Exception as e:
+                print(f"[main] Error processing chunk {idx + 1}: {e}")
+    
+    print("--------")
+    print("Total count of input items:", len(combined_results))
+    print("-----")
+    
+    return combined_results
+
+def tiktok_posts_scrapper_old_10_02_2025(request_dict, search_type, start_of_day, days=3, range_days=None):
     # Загружаем переменные из .env
     load_dotenv()
     # Инициализируем клиента Apify
@@ -125,26 +215,6 @@ def tiktok_posts_scrapper(request_dict, search_type, start_of_day, days=3, range
             "keywords": hashtags
         } 
 
-    '''
-    run_input = {
-        "excludePinnedPosts": True,
-        "oldestPostDate": start_of_day.strftime('%Y-%m-%d'),
-        "profiles": usernames,
-        "resultsPerPage": 100,
-        "shouldDownloadCovers": False,
-        "shouldDownloadSlideshowImages": False,
-        "shouldDownloadSubtitles": False,
-        "shouldDownloadVideos": True,
-        "profileScrapeSections": [
-            "videos"
-        ],
-        "profileSorting": "latest",
-        "searchSection": "",
-        "maxProfilesPerQuery": 10
-    }
-    '''
-
-
 
     print("Apify input created: " + str(run_input))
     
@@ -154,10 +224,16 @@ def tiktok_posts_scrapper(request_dict, search_type, start_of_day, days=3, range
     
     # Запуск актора и ожидание его завершения
     try:
-        run = client.actor("apidojo/tiktok-profile-scraper").call(
-            run_input=run_input)
-        dataset_items = client.dataset(
-            run["defaultDatasetId"]).list_items().items
+        if search_type == "username":
+            run = client.actor("apidojo/tiktok-profile-scraper").call(
+                run_input=run_input)
+            dataset_items = client.dataset(
+                run["defaultDatasetId"]).list_items().items
+        elif search_type == "hashtag":
+            run = client.actor("apidojo/tiktok-scraper").call(
+                run_input=run_input)
+            dataset_items = client.dataset(
+                run["defaultDatasetId"]).list_items().items
         
         print('--------')
         print('count of input items: ' + str(len(dataset_items)))
@@ -167,6 +243,112 @@ def tiktok_posts_scrapper(request_dict, search_type, start_of_day, days=3, range
         print(f"Error processing users: {e}")
     #print(reelsData)
     return dataset_items
+
+
+
+def tiktok_posts_scrapper(request_dict, search_type, start_of_day, days=3, range_days=None):
+    # Загружаем переменные из .env
+    load_dotenv()
+    
+    # Инициализируем клиента Apify (синхронно)
+    APIFY_API = "apify_api_yWpkjSErkoE8elqnfrRcQAjwNmJPc92UqMym"
+    client = ApifyClient(APIFY_API)
+    
+    # Здесь можно добавить логику для перерасчёта дат, если потребуется.
+    
+    # Функция для разбиения списка на чанки заданного размера
+    def chunk_list(lst, chunk_size):
+        for i in range(0, len(lst), chunk_size):
+            yield lst[i:i + chunk_size]
+    
+    combined_results = []
+    # Разбиваем список на чанки (например, по 5 hashtag)
+    chunk_size = 15
+    
+    if search_type == "username":
+        # Извлекаем список username
+        usernames = [item.get('username') for item in request_dict 
+                     if isinstance(item, dict) and item.get('username')]
+        
+        username_chunks = list(chunk_list(usernames, chunk_size))
+        
+        # Функция-воркер для обработки одного чанка username
+        def run_actor_sync(chunk):
+            run_input = {
+                "maxItems": 1500,
+                "until": start_of_day.strftime('%Y-%m-%d'),
+                "usernames": chunk
+            }
+            try:
+                print("Running TikTok username actor with input:", run_input)
+                run = client.actor("apidojo/tiktok-profile-scraper").call(run_input=run_input)
+                dataset_items = client.dataset(run["defaultDatasetId"]).list_items().items
+                return dataset_items
+            except Exception as e:
+                print(f"[run_actor_sync] Ошибка при обработке чанка {chunk}: {e}")
+                return []
+        
+        # Параллельный запуск воркеров через ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            future_to_index = {executor.submit(run_actor_sync, chunk): idx 
+                               for idx, chunk in enumerate(username_chunks)}
+            
+            for future in as_completed(future_to_index):
+                idx = future_to_index[future]
+                try:
+                    result = future.result()
+                    combined_results.extend(result)
+                    print(f"Chunk {idx + 1}: {len(result)} items received.")
+                except Exception as e:
+                    print(f"[main] Ошибка в обработке чанка {idx + 1}: {e}")
+    
+    elif search_type == "hashtag":
+        # Извлекаем список hashtag
+        hashtags = [item.get('hashtag') for item in request_dict 
+                    if isinstance(item, dict) and item.get('hashtag')]
+        
+        hashtag_chunks = list(chunk_list(hashtags, chunk_size))
+        
+        # Функция-воркер для обработки одного чанка hashtag
+        def run_actor_sync(chunk):
+            run_input = {
+                "maxItems": 1500,
+                "dateRange": "THIS_WEEK",
+                "keywords": chunk
+            }
+            try:
+                print("Running TikTok hashtag actor with input:", run_input)
+                run = client.actor("apidojo/tiktok-scraper").call(run_input=run_input)
+                dataset_items = client.dataset(run["defaultDatasetId"]).list_items().items
+                return dataset_items
+            except Exception as e:
+                print(f"[run_actor_sync] Ошибка при обработке чанка {chunk}: {e}")
+                return []
+        
+        # Параллельный запуск воркеров через ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            future_to_index = {executor.submit(run_actor_sync, chunk): idx 
+                               for idx, chunk in enumerate(hashtag_chunks)}
+            
+            for future in as_completed(future_to_index):
+                idx = future_to_index[future]
+                try:
+                    result = future.result()
+                    combined_results.extend(result)
+                    print(f"Chunk {idx + 1}: {len(result)} items received.")
+                except Exception as e:
+                    print(f"[main] Ошибка в обработке чанка {idx + 1}: {e}")
+    else:
+        print(f"Unsupported search_type: {search_type}")
+        return []
+    
+    print('--------')
+    print('Total count of input items: ' + str(len(combined_results)))
+    print('-----')
+    
+    return combined_results
+
+
 
 
 def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, end_of_day):
@@ -180,6 +362,16 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
             # Проверяем, входит ли пост в диапазон целевых дат
             if start_of_day <= post_time <= end_of_day:
                 reelsData.append(item)
+    
+    # Удаляем дублирующие элементы по ['code']
+    print(f'Before duplicates {len(reelsData)}')
+    unique_reels = {}
+    for reel in reelsData:
+        unique_reels[reel['code']] = reel
+    reelsData = list(unique_reels.values())
+
+    print(f'After duplicates {len(reelsData)}')
+    
     # Преобразуем request_dict в словарь для быстрого поиска, у меня тут появляется такой массив {'username_1': 2000, 'username_2':34000}
     username_limits = {
         entry['username']: entry['viewsFilter']
@@ -199,11 +391,12 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
         if username in username_limits and play_count >= username_limits[username]:
             filtered_reels.append(reel)
         #elif play_count >= 20000:
-        elif username not in username_limits and play_count >= 20000:
+        elif username not in username_limits and play_count >= 100000:
             print(f"\033[94mReels from user that not in database - {reel.get('owner', {}).get('username', 'NOOOOOOO')} - views:  {reel.get('video', {}).get('playCount', 0)}\033[0m")
             # Если username отсутствует в username_limits, добавляем его и включаем рилс в список
             username_limits.setdefault(username, 0)
             filtered_reels.append(reel)
+
 
 
 
@@ -230,7 +423,6 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     print(f'count of input reels: {len(reelsData)}')
     print(f'count of filtered reels: {len(sorted_data)}')
     print("----------------")
-
     #Просто выписываем какие рилсы мы взяли и с каким количеством просмотров
     # for item in sorted_data:
     #     print(
@@ -252,6 +444,14 @@ def tiktok_scrapper_filter_sorter(dataset_items, request_dict, search_type, star
             if start_of_day <= post_time <= end_of_day:
                 reelsData.append(item)
 
+    # Удаляем дублирующие элементы по ['code']
+    print(f'Before duplicates {len(reelsData)}')
+    unique_reels = {}
+    for reel in reelsData:
+        unique_reels[reel['id']] = reel
+    reelsData = list(unique_reels.values())
+
+    print(f'After duplicates {len(reelsData)}')
 
 
     if search_type == "username":
@@ -311,6 +511,8 @@ def extracted_reels_data_maker(data):
         try:
             # Initialize er_followers
             er_commlike = 0  # Initialize to avoid UnboundLocalError
+            er_followers = 0
+            musicInfo = ""
             # Convert this format 2024-12-08T20:51:49.000Z to this 2024-12-06 00:57:56
             #print(f"time: {entry.get('timestamp')}")
             formatted_timestamp = datetime.strptime(
@@ -328,7 +530,8 @@ def extracted_reels_data_maker(data):
             comments_count = float(entry.get('commentCount', 0) or 0)
             likes_count = float(entry.get('likeCount', 0) or 0)
             video_play_count = float(entry.get('video', {}).get('playCount','') or 1)  # Avoid division by zero
-            followers_сount = float(entry.get('owner', {}).get('followerCount','') or 1)
+            followers_count = float(entry.get('owner', {}).get('followerCount','') or 1)
+
 
             if likes_count != -1:
                 er_commlike = float(
@@ -337,22 +540,20 @@ def extracted_reels_data_maker(data):
             else:
                 er_commlike = 0
 
+
             if entry.get("audio") is not None:
                 musicInfo = str(entry.get("audio", {}).get("artist", "") + " - " + entry.get("audio", {}).get("title", ""))
             else:
                 musicInfo = ""
 
             
-            # if entry.get('shares') != 0 and entry.get('views') != 0:
-            #     er_shares = str( round( share_count / video_play_count, 10))
-            # else:
-            #     er_shares = 0
-            
-            if followers_сount > 0 and video_play_count > 0:
-                er_followers = float(round(video_play_count / followers_сount), 10)
+            if followers_count > 0 and video_play_count > 0:
+                er_followers = float(round(video_play_count / followers_count, 10)) 
             else:
                 er_followers = 0
-            
+            # print(f"shortcode - {entry.get('code')}")
+            # print(f"{comments_count}   -   {likes_count}   -   {video_play_count}   -   {followers_count}")
+            # print(f"{er_commlike}   -   {er_followers}   -   {musicInfo}")           
                 
 
         except (ValueError, TypeError) as e:
@@ -370,7 +571,7 @@ def extracted_reels_data_maker(data):
             'videoUrl': entry.get('video', {}).get('url',''),
             'shortCode': entry.get('code'),
             'caption': entry.get('caption'),
-            'followersCount': followers_сount,
+            'followersCount': followers_count,
             'commentsCount': comments_count,
             'likesCount': likes_count,
             'collectCount': 0,
@@ -396,6 +597,7 @@ def extracted_tiktok_data_maker(data):
         er_all = 0
         er_shares = 0  # Initialize to avoid UnboundLocalError
         er_followers = 0  # Initialize to avoid UnboundLocalError
+        musicInfo = ""
         try:
 
 
@@ -434,6 +636,14 @@ def extracted_tiktok_data_maker(data):
             else:
                 er_followers = 0
 
+            if entry["song"]["artist"] is not None:
+                if entry["song"]["title"] and "original sound" not in entry["song"]["title"]:
+                    musicInfo = str(entry.get("song", {}).get("artist", "") + " - " + entry.get("song", {}).get("title", ""))
+                else:
+                    musicInfo = ""
+            else:
+                musicInfo = ""
+            
 
         except (ValueError, TypeError) as e:
             print(f"Error calculating engagement in id = {entry.get('id')}: {e}")
@@ -456,7 +666,7 @@ def extracted_tiktok_data_maker(data):
             'er_all': er_all,
             'er_shares': er_shares,
             'er_followers': er_followers,
-            'musicInfo': str(entry.get("song", {}).get("artist", "") + " - " + entry.get("song", {}).get("title", ""))
+            'musicInfo': musicInfo
         }
         extracted_data.append(extracted_entry)
 
