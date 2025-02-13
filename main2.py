@@ -351,11 +351,11 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
       - Возвращает reelsData, extracted_data
     """
     
-    debug = 0
+    debug = 1
 
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/23/sternMeister_database_20250210_140603.json", "r", encoding="utf-8") as file:
+        with open("db/30/dataset_instagram-scraper_2025-02-13_09-47-20-304_viva.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
