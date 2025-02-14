@@ -793,7 +793,7 @@ def app_run(option="all", account_id=0, range_days="3-3", scraping_type="instagr
     elif switcher == "pro":
         # For all accounts
         for account in table_list["accounts"]:
-            if account["subscription"] == "pro" and account["id"] < 2:
+            if account["subscription"] == "pro":
                 process_data(account, range_days=range_days, scheme=0)
     elif switcher == "":
         #process_data(account, days=1, scheme=0)
