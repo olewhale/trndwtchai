@@ -79,7 +79,7 @@ def get_table_data_as_json(account, list_name):
 # 1. Вспомогательная функция
 ###########################
 
-def col_index_to_excel_name(idx_zero_based: int) -> str:
+def col_name(idx_zero_based: int) -> str:
     """
     Преобразует индекс 0-based (0,1,2...) в название столбца (A,B,C...).
     0 -> A
@@ -223,7 +223,7 @@ COLUMNS_CONFIG = {
         {
             "name": "len_caption",
             "value_func": lambda item, row_n, i2excel, name2idx:
-                f'=len(INDIRECT("{col_index_to_excel_name(name2idx["caption"])}"&ROW()))'
+                f'=len(INDIRECT("{col_name(name2idx["caption"])}"&ROW()))'
         },
         {
             "name": "followers",
@@ -256,7 +256,7 @@ COLUMNS_CONFIG = {
         {
             "name": "virus_detector",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=IF(COUNT(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))) / (2 * (STDEV(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))  + 0.0000000001)))'
+                f'=IF(COUNT(FILTER({col_name(name2idx["views"])}:{col_name(name2idx["views"])}, {col_name(name2idx["userlink"])}:{col_name(name2idx["userlink"])} = INDIRECT("{col_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_name(name2idx["views"])}:{col_name(name2idx["views"])}, {col_name(name2idx["userlink"])}:{col_name(name2idx["userlink"])} = INDIRECT("{col_name(name2idx["userlink"])}"&ROW())))) / (2 * (STDEV(FILTER({col_name(name2idx["views"])}:{col_name(name2idx["views"])}, {col_name(name2idx["userlink"])}:{col_name(name2idx["userlink"])} = INDIRECT("{col_name(name2idx["userlink"])}"&ROW())))  + 0.0000000001)))'
             )
         },
         {
@@ -270,6 +270,18 @@ COLUMNS_CONFIG = {
         {
             "name": "duration",
             "value_func": lambda item, row_n, i2excel, name2idx: item.get("videoDuration", "")
+        },
+        {
+            "name": "virus_status",
+            "value_func": lambda item, row_n, i2excel, name2idx: (
+                f'=IF(COUNTIF({col_name(name2idx["userlink"])}:{col_name(name2idx["userlink"])}, INDIRECT("{col_name(name2idx["userlink"])}"&ROW()))<4, "NO DATA", IF(INDIRECT("{col_name(name2idx["virus_detector"])}"&ROW())<-0.1, "LOW", IF(INDIRECT("{col_name(name2idx["virus_detector"])}"&ROW())<= 0.1, "AVERAGE", IF(INDIRECT("{col_name(name2idx["virus_detector"])}"&ROW())<=0.4, "GOOD", IF(INDIRECT("{col_name(name2idx["virus_detector"])}"&ROW())<=0.8, "BEST", "VIRUS")))))'
+                )
+        },
+        {
+            "name": "engagement_status",
+            "value_func": lambda item, row_n, i2excel, name2idx: (
+                f'=IF(AND(INDIRECT("{col_name(name2idx["er_commlike"])}"&ROW())<0.02,INDIRECT("{col_name(name2idx["ER_shares_views"])}"&ROW())<0.005), "LOW ER", IF(AND(INDIRECT("{col_name(name2idx["er_commlike"])}"&ROW())<=0.04,INDIRECT("{col_name(name2idx["ER_shares_views"])}"&ROW())<=0.01), "AVERAGE ER", "BEST ER"))'
+                )
         },
         {
             "name": "original_script",
@@ -322,7 +334,7 @@ COLUMNS_CONFIG = {
         {
             "name": "len_caption",
             "value_func": lambda item, row_n, i2excel, name2idx:
-                f'=len(INDIRECT("{col_index_to_excel_name(name2idx["caption"])}"&ROW()))'
+                f'=len(INDIRECT("{col_name(name2idx["caption"])}"&ROW()))'
         },
         {
             "name": "followers",
@@ -363,7 +375,7 @@ COLUMNS_CONFIG = {
         {
             "name": "virus_detector",
             "value_func": lambda item, row_n, i2excel, name2idx: (
-                f'=IF(COUNT(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_index_to_excel_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))) / (2 * (STDEV(FILTER({col_index_to_excel_name(name2idx["views"])}:{col_index_to_excel_name(name2idx["views"])}, {col_index_to_excel_name(name2idx["userlink"])}:{col_index_to_excel_name(name2idx["userlink"])} = INDIRECT("{col_index_to_excel_name(name2idx["userlink"])}"&ROW())))  + 0.0000000001)))'
+                f'=IF(COUNT(FILTER({col_name(name2idx["views"])}:{col_name(name2idx["views"])}, {col_name(name2idx["userlink"])}:{col_name(name2idx["userlink"])} = INDIRECT("{col_name(name2idx["userlink"])}"&ROW()))) = 1, 0, (INDIRECT("{col_name(name2idx["views"])}"&ROW()) - MEDIAN(FILTER({col_name(name2idx["views"])}:{col_name(name2idx["views"])}, {col_name(name2idx["userlink"])}:{col_name(name2idx["userlink"])} = INDIRECT("{col_name(name2idx["userlink"])}"&ROW())))) / (2 * (STDEV(FILTER({col_name(name2idx["views"])}:{col_name(name2idx["views"])}, {col_name(name2idx["userlink"])}:{col_name(name2idx["userlink"])} = INDIRECT("{col_name(name2idx["userlink"])}"&ROW())))  + 0.0000000001)))'
             )
         },
         {
@@ -410,7 +422,7 @@ def generate_row_data(item, row_number, scheme, scraping_type):
 
     row_values = []
     for i, col_def in enumerate(columns):
-        val = col_def["value_func"](item, row_number, col_index_to_excel_name, name2idx)
+        val = col_def["value_func"](item, row_number, col_name, name2idx)
         row_values.append(val)
     return row_values
 

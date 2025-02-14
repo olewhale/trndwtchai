@@ -567,6 +567,8 @@ def extracted_reels_data_maker(data):
             'account_url': username_link,
             'username': username_real,
             'url': entry.get('url'),
+            'platform': "instagram",
+            'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),  # Добавляем дату и время создания элемента
             'timestamp': formatted_timestamp,
             'videoUrl': entry.get('video', {}).get('url',''),
             'shortCode': entry.get('code'),
@@ -652,6 +654,8 @@ def extracted_tiktok_data_maker(data):
             'account_url': entry["channel"]["url"],
             'username': entry["channel"]["username"],
             'url': entry.get('postPage'),
+            'platform': "tiktok",
+            'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),  # Добавляем дату и время создания элемента
             'timestamp': formatted_timestamp,
             'videoUrl': entry.get("video", {}).get("url", ""),
             'shortCode': entry.get('id'),
@@ -671,15 +675,3 @@ def extracted_tiktok_data_maker(data):
         extracted_data.append(extracted_entry)
 
     return extracted_data
-
-
-#<FOR_TESTS1>
-'''
-
-'''
-#</FOR_TESTS1>
-#<FOR_TESTS2>
-'''
-
-'''
-#</FOR_TESTS2>

@@ -9,18 +9,13 @@ import json
 import subprocess
 
 import requests
-''' #for api server
-#from fastapi import FastAPI
-#from fastapi.staticfiles import StaticFiles
-#from fastapi.responses import HTMLResponse
-#
-'''
 from pydantic import BaseModel, Field
 
 import utils.apify as apify
 import utils.prompts as gpt
 import utils.ggl as ggl
 import utils.shares as sh
+import utils.tg as tg
 from dotenv import load_dotenv
 from openai import OpenAI
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -351,11 +346,11 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
       - Возвращает reelsData, extracted_data
     """
     
-    debug = 1
+    debug = 0
 
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/30/dataset_instagram-scraper_2025-02-13_09-47-20-304_viva.json", "r", encoding="utf-8") as file:
+        with open("db/0/olegmazunin_database_20250213_232659.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
@@ -653,19 +648,27 @@ def task_06_write_data_to_gs(results, account, scheme, scraping_type, start_time
             ggl.append_data_to_google_sheet(results, account["table_id"], 'INSTAGRAM_SAVED')
         elif scheme == 2:
             ggl.append_data_to_google_sheet(results, account["table_id"], 'TIKTOK_SAVED', scheme=2)
-
         print(f"\nDONE\n\n")
         end_time = time.time()
         total_process_time_print = end_time - start_time
         print("*")
         print("*")
-        print("*")
         print(f"Общее время обработки: {total_process_time_print:.2f} секунд")
         print("*")
         print("*")
-        print("*")
-
         return "Process completed successfully!"
+    except Exception as e:
+        print(f"Ошибка в процессе обработки в ggl: {e}")
+        return None
+    
+def task_07_send_notification(results, account, scheme, scraping_type, start_time):
+    """
+    07 - SEND NOTIFICATION TO TELEGRAM
+    """
+    try:
+        tg.send_table_update(results, account)
+
+        return "Notification has been sent!"
     except Exception as e:
         print(f"Ошибка в процессе обработки в ggl: {e}")
         return None
@@ -769,6 +772,7 @@ def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_
 
     # 06 - WRITE DATA TO GOOGLE SHEET
     task_06_write_data_to_gs(results_final, account, scheme, scraping_type, start_time)
+    task_07_send_notification(results_final, account, scheme, scraping_type, start_time)
 
     return "Process completed successfully!"
 
@@ -786,10 +790,10 @@ def app_run(option="all", account_id=0, range_days="3-3", scraping_type="instagr
         process_data(table_list["accounts"][account_id], range_days=range_days, scheme=0, scraping_type=scraping_type)
         #process_data_onlyspez(table_list["accounts"][account_id], days=day_for_one, scheme=0)
 
-    elif switcher == "all":
+    elif switcher == "pro":
         # For all accounts
         for account in table_list["accounts"]:
-            if account["subscription"] != "stop" and account["subscription"] != "free" and account["subscription"] != "2week":
+            if account["subscription"] == "pro" and account["id"] < 2:
                 process_data(account, range_days=range_days, scheme=0)
     elif switcher == "":
         #process_data(account, days=1, scheme=0)
