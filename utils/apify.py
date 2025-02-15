@@ -131,7 +131,7 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
     
     # Преобразуем username в полные ссылки для Instagram
     username_links = [f"https://www.instagram.com/{user}" for user in usernames]
-    print("Username links:", username_links)
+    #print("Username links:", username_links)
     
     # Функция для разбиения списка на чанки заданного размера
     def chunk_list(lst, chunk_size):

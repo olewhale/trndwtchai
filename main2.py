@@ -30,15 +30,32 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
+### LOGGER
+
 # Настройка логирования
 class NoOpenAILogFilter(logging.Filter):
     def filter(self, record):
-        return "https://api.openai.com/v1/chat/completions" not in record.getMessage()
+        # Skip OpenAI API calls and empty messages
+        return ("https://api.openai.com/v1/chat/completions" not in record.getMessage() and 
+                record.getMessage().strip() != "")
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+# Configure root logger
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# Create and configure module logger
 logger = logging.getLogger(__name__)
 logger.addFilter(NoOpenAILogFilter())
+
+# Optional: Add file handler if needed
+file_handler = logging.FileHandler('app.log')
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(file_handler)
+
+### /LOGGER
 
 class ReelLinksData(BaseModel):
     urls: list[str]
