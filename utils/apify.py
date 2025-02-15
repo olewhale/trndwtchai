@@ -634,7 +634,7 @@ def extracted_tiktok_data_maker(data):
                 er_shares = 0
             
             if followers_count > 0 and entry.get('views', 0) > 0:
-                er_followers = str(round(math.log(1 + video_play_count) / math.log(1 + followers_count), 10))
+                er_followers = float(round(video_play_count / followers_count, 10)) 
             else:
                 er_followers = 0
 
