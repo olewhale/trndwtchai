@@ -1,9 +1,8 @@
-from re import S
-from fastapi.params import Query
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from googleapiclient.discovery import build
 from dotenv import load_dotenv
-import os, sys, json, time
+import json, time
 
 # Загружаем переменные из .env
 load_dotenv()
@@ -448,6 +447,7 @@ def append_data_to_google_sheet(json_results, table_id, list_name, scheme=0, scr
         # --- Открываем таблицу ---
         google_sheet_url = f'https://docs.google.com/spreadsheets/d/{table_id}/edit?usp=sharing'
         sheet = client.open_by_url(google_sheet_url).worksheet(list_name)
+        sheet_id = sheet.id
 
         # --- Считываем текущее значение нумерации в A3 (3-я строка, 1-й столбец) ---
         cell_value = sheet.cell(3, 1).value
@@ -466,11 +466,96 @@ def append_data_to_google_sheet(json_results, table_id, list_name, scheme=0, scr
 
         # --- Вставляем сразу все данные (реверсом, если нужно) ---
         rows_to_insert.reverse()
-        sheet.insert_rows(rows_to_insert, row=3, value_input_option='USER_ENTERED')
+        #sheet.insert_rows(rows_to_insert, row=3, value_input_option='USER_ENTERED')
+        #update existing filters
+        try:
+            #FILTER
+
+            # 3️⃣ Считываем текущие фильтры
+            service = build('sheets', 'v4', credentials=credentials)
+            spreadsheet = service.spreadsheets().get(spreadsheetId=table_id).execute()
+            sheet_info = next((s for s in spreadsheet['sheets'] if s['properties']['sheetId'] == sheet_id), None)
+
+            if not sheet_info or "basicFilter" not in sheet_info:
+                print("⚠️ Базовый фильтр не найден. Пропускаем обновление.")
+
+            existing_filter = sheet_info["basicFilter"]
+            print("🎯 Текущие фильтры перед обновлением:")
+            print(json.dumps(existing_filter, indent=4, ensure_ascii=False))
+
+            # 4️⃣ Сохраняем значения только для фильтруемых колонок
+            criteria_columns = list(existing_filter.get("criteria", {}).keys())
+            column_value_map = {}
+
+            # Загружаем только нужные диапазоны для этих колонок
+            ranges = [f"'TEST_FILTER'!{chr(65 + int(col))}2:{chr(65 + int(col))}" for col in criteria_columns]
+            result = service.spreadsheets().values().batchGet(
+                spreadsheetId=table_id,
+                ranges=ranges
+            ).execute()
+
+            # Обрабатываем результат
+            for idx, col in enumerate(criteria_columns):
+                column_values = result.get("valueRanges", [])[idx].get("values", [])
+                # Извлекаем уникальные значения, ограничиваем вывод
+                unique_values = {val[0] for val in column_values if val}
+                column_value_map[int(col)] = unique_values
+                #print(f"📊 Колонка {col}: {list(unique_values)[:5]}... (показано 5 из {len(unique_values)})")
+
+            # 5️⃣ Отключаем фильтры
+            service.spreadsheets().batchUpdate(
+                spreadsheetId=table_id,
+                body={"requests": [{"clearBasicFilter": {"sheetId": sheet_id}}]}
+            ).execute()
+            #print("🚨 Фильтры отключены.")
+
+            # 6️⃣ Добавляем новую строку
+            header_row = sheet.row_values(1)
+            new_row = ["" for _ in range(len(header_row))]
+            try:
+                virus_index = header_row.index("Вирусность")
+                engagement_index = header_row.index("Вовлеченность")
+                new_row[virus_index] = "NO DATA"
+                new_row[engagement_index] = "LOW ER"
+            except ValueError:
+                print("⚠️ Столбцы 'Вирусность' или 'Вовлеченность' не найдены.")
+
+
+
+
+            sheet.insert_rows(rows_to_insert, row=3, value_input_option='USER_ENTERED')
+            print("✅ Новая строка добавлена.")
+
+
+
+
+            # 7️⃣ Обновляем диапазон фильтра
+            existing_filter["range"]["endRowIndex"] = sheet.row_count
+
+            # 8️⃣ Восстанавливаем скрытые значения
+            if "criteria" in existing_filter:
+                for col_idx, criteria in existing_filter["criteria"].items():
+                    if "hiddenValues" in criteria:
+                        current_hidden = set(criteria["hiddenValues"])
+                        possible_values = column_value_map.get(int(col_idx), set())
+                        # Добавляем только те скрытые значения, которые существуют
+                        updated_hidden = current_hidden.intersection(possible_values)
+                        existing_filter["criteria"][col_idx]["hiddenValues"] = list(updated_hidden)
+
+            # 9️⃣ Восстанавливаем фильтры
+            service.spreadsheets().batchUpdate(
+                spreadsheetId=table_id,
+                body={"requests": [{"setBasicFilter": {"filter": existing_filter}}]}
+            ).execute()
+            print("🔄 Фильтры восстановлены с обновлённым диапазоном.")
+        except Exception as e:
+            print(f"Ошибка в процессе обработки в обновлении фильтров в ggl: {e}")
+
+            
         print(f"Все данные успешно добавлены в таблицу")
 
     except Exception as e:
-        print(f"Ошибка в процессе обработки в ggl: {e}")
+        print(f"Ошибка в процессе обработки в append_data_to_google_sheet в ggl: {e}")
 
     print("Done!")
 

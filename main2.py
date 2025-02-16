@@ -363,11 +363,11 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
       - Возвращает reelsData, extracted_data
     """
     
-    debug = 0
+    debug = 1
 
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/0/olegmazunin_database_20250213_232659.json", "r", encoding="utf-8") as file:
+        with open("db/0/olegmazunin_database_20250216_120353.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
