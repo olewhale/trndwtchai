@@ -21,6 +21,7 @@ from openai import OpenAI
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
+
 #print(f"\033[91m STRANGE \033[0m")
 print('SERVER STARTED')
 
@@ -31,13 +32,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 ### LOGGER
-
-# Настройка логирования
-class NoOpenAILogFilter(logging.Filter):
-    def filter(self, record):
-        # Skip OpenAI API calls and empty messages
-        return ("https://api.openai.com/v1/chat/completions" not in record.getMessage() and 
-                record.getMessage().strip() != "")
+# Disable all logging
+logging.disable(logging.CRITICAL)
 
 # Configure root logger
 logging.basicConfig(
@@ -48,7 +44,6 @@ logging.basicConfig(
 
 # Create and configure module logger
 logger = logging.getLogger(__name__)
-logger.addFilter(NoOpenAILogFilter())
 
 # Optional: Add file handler if needed
 file_handler = logging.FileHandler('app.log')
@@ -367,7 +362,7 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
 
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/0/olegmazunin_database_20250216_120353.json", "r", encoding="utf-8") as file:
+        with open("db/28/saloapp_database_20250217_152652.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
@@ -431,6 +426,8 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
         if sortedReelsCount == 0:
             print('No new reels')
             return [], []
+        
+        sorted_data = ggl.check_duplicates(sorted_data, account, account['search_type'], 'INSTAGRAM')
 
         # Создаём extracted_data
         extracted_data = apify.extracted_reels_data_maker(sorted_data)
@@ -460,6 +457,8 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
         if sortedReelsCount == 0:
             print('No new tiktok')
             return [], []
+
+        sorted_data = ggl.check_duplicates(sorted_data, account, scraping_type, 'TIKTOK')
 
         extracted_data = apify.extracted_tiktok_data_maker(sorted_data)
 

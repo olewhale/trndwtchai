@@ -150,7 +150,7 @@ def instagram_posts_scrapper(request_dict, start_of_day, days=3, range_days=None
             "startUrls": chunk,
             "until": computed_start_of_day.strftime('%Y-%m-%d')
         }
-        print("Sending request with input:", run_input)
+        #print("Sending request with input:", run_input)
         try:
             run = client.actor("apidojo/instagram-scraper").call(run_input=run_input)
             #print("Received run response:", run)
@@ -381,18 +381,22 @@ def instagram_scrapper_filter_sorter(dataset_items, request_dict, start_of_day, 
     # Фильтруем рилсы
     filtered_reels = []
     for reel in reelsData:
+        # Skip this reel if it contains 'noResults'
+        if 'noResults' in reel:
+            continue
+        if reel.get('video', {}).get('playCount') is None:
+            continue
+        
         username = reel.get('owner', {}).get('username', '')  # Исправлено 'onwer' -> 'owner'
         play_count = reel.get('video', {}).get('playCount', 0) #ВОЗМОЖНО ЭТО ПЛОХО ОТРАБАТЫВАЕТ И ВЫСТАВЛЯЕТ 0
 
-        # Skip this reel if it contains 'noResults'
-        if 'noResults' in reel:
-            continue  
+
 
         if username in username_limits and play_count >= username_limits[username]:
             filtered_reels.append(reel)
         #elif play_count >= 20000:
         elif username not in username_limits and play_count >= 100000:
-            print(f"\033[94mReels from user that not in database - {reel.get('owner', {}).get('username', 'NOOOOOOO')} - views:  {reel.get('video', {}).get('playCount', 0)}\033[0m")
+            print(f"\033[94mReels from user that not in database - {reel.get('owner', {}).get('username', 'NOOOOOOO')} - views:  {reel.get('video', {}).get('playCount', 0)} - url: {reel.get('url', {})}\033[0m")
             # Если username отсутствует в username_limits, добавляем его и включаем рилс в список
             username_limits.setdefault(username, 0)
             filtered_reels.append(reel)

@@ -64,6 +64,94 @@ def get_table_data_as_json(account, list_name):
         print(f"Ошибка в процессе get_table_data_as_json: {e}")
         return []
 
+def check_duplicates(apify_data, account, scraping_type, list_name):
+    try:
+        print(f"Starting to check for duplicates for {account['username']}")
+
+        # Set up Google Sheets API credentials
+        scope = [
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(
+            'static/reelstranscription-a94a4b07252e.json', scope)
+        client = gspread.authorize(credentials)
+
+        # Open the Google Sheet
+        google_sheet_url = f'https://docs.google.com/spreadsheets/d/{account["table_id"]}/edit?usp=sharing'
+        sheet = client.open_by_url(google_sheet_url).worksheet(list_name)
+
+        # Get all values from the third column (C) starting from the second row
+        existing_urls = sheet.col_values(3)[1:]  # Пропускаем заголовок
+
+        # print(len(existing_urls))
+        # print()
+        # for url in existing_urls:
+        #     print(url)
+        apify_data_noDuplicates = []
+        # Extract URLs from apify_data for comparison
+        if scraping_type == 'instagram':
+            apify_urls = {x.get('url', "") for x in apify_data}
+            # Find duplicates
+            duplicates = set(existing_urls) & apify_urls
+            print(f'Count elements before check_duplicates: {len(apify_data)}')
+            # Remove duplicates from apify_data
+            apify_data_noDuplicates = [item for item in apify_data if item.get('url', "") not in duplicates]
+            print(f'Count elements after check_duplicates: {len(apify_data_noDuplicates)}')
+        elif scraping_type == 'tiktok':
+            apify_urls = {x.get('postPage', "") for x in apify_data}
+            # Find duplicates
+            duplicates = set(existing_urls) & apify_urls
+            print(f'Count elements before check_duplicates: {len(apify_data)}')
+            # Remove duplicates from apify_data
+            apify_data_noDuplicates = [item for item in apify_data if item.get('postPage', "") not in duplicates]
+            print(f'Count elements after check_duplicates: {len(apify_data_noDuplicates)}')
+            print("----------------")
+            print("DUPLICATES")
+            print(duplicates)
+            print("----------------")
+
+
+        return apify_data_noDuplicates
+    except Exception as e:
+        print(f"Ошибка в процессе check_duplicates: {e}")
+        return apify_data  # Возвращаем оригинальные данные в случае ошибки
+
+
+# account_test = {
+#         "id": 28,
+#         "username": "saloapp",
+#         "username_tg": "saloapp_test",
+#         "table_id": "1EuPZzHvbq4I9PkkSNKGPO8Rsyg6HbISOujpk8ievzzI",
+#         "topics" : "",
+#         "subscription" : "1week",
+#         "update_date" : "friday",
+#         "language" : "english",
+#         "search_type" : "hashtag"
+#     }
+
+# apify_data_test = [
+#     {"postPage": "https://www.tiktok.com/@dee.yope/video/7466135328869338401"},
+#     {"postPage": "https://www.tiktok.com/@dee.yope/video/7466135328869338402"},
+#     {"postPage": "https://www.tiktok.com/@dee.yope/video/7466135328869338403"},
+#     {"postPage": "https://www.tiktok.com/@dee.yope/video/7466135328869338404"},
+#     {"postPage": "https://www.tiktok.com/@dee.yope/video/7466135328869338405"},
+#     {"postPage": "https://www.tiktok.com/@dee.yope/video/7466135328869338406"}
+# ]
+
+# apify_data_test = [
+#     {"url": "https://www.tiktok.com/@dee.yope/video/7466135328869338401"},
+#     {"url": "https://www.tiktok.com/@dee.yope/video/7466135328869338402"},
+#     {"url": "https://www.tiktok.com/@dee.yope/video/7466135328869338403"},
+#     {"url": "https://www.tiktok.com/@dee.yope/video/7466135328869338404"},
+#     {"url": "https://www.tiktok.com/@dee.yope/video/7466135328869338405"},
+#     {"url": "https://www.tiktok.com/@dee.yope/video/7466135328869338406"}
+# ]
+
+# check_duplicates(apify_data_test, account_test, "tiktok", "TIKTOK")
+
 
 
 # Example usage
@@ -468,88 +556,91 @@ def append_data_to_google_sheet(json_results, table_id, list_name, scheme=0, scr
         rows_to_insert.reverse()
         #sheet.insert_rows(rows_to_insert, row=3, value_input_option='USER_ENTERED')
         #update existing filters
-        try:
-            #FILTER
 
-            # 3️⃣ Считываем текущие фильтры
-            service = build('sheets', 'v4', credentials=credentials)
-            spreadsheet = service.spreadsheets().get(spreadsheetId=table_id).execute()
-            sheet_info = next((s for s in spreadsheet['sheets'] if s['properties']['sheetId'] == sheet_id), None)
+        sheet.insert_rows(rows_to_insert, row=3, value_input_option='USER_ENTERED')
+        print("✅ Новая строка добавлена.")
+        # try:
+        #     #FILTER
 
-            if not sheet_info or "basicFilter" not in sheet_info:
-                print("⚠️ Базовый фильтр не найден. Пропускаем обновление.")
+        #     # 3️⃣ Считываем текущие фильтры
+        #     service = build('sheets', 'v4', credentials=credentials)
+        #     spreadsheet = service.spreadsheets().get(spreadsheetId=table_id).execute()
+        #     sheet_info = next((s for s in spreadsheet['sheets'] if s['properties']['sheetId'] == sheet_id), None)
 
-            existing_filter = sheet_info["basicFilter"]
-            print("🎯 Текущие фильтры перед обновлением:")
-            print(json.dumps(existing_filter, indent=4, ensure_ascii=False))
+        #     if not sheet_info or "basicFilter" not in sheet_info:
+        #         print("⚠️ Базовый фильтр не найден. Пропускаем обновление.")
 
-            # 4️⃣ Сохраняем значения только для фильтруемых колонок
-            criteria_columns = list(existing_filter.get("criteria", {}).keys())
-            column_value_map = {}
+        #     existing_filter = sheet_info["basicFilter"]
+        #     print("🎯 Текущие фильтры перед обновлением:")
+        #     print(json.dumps(existing_filter, indent=4, ensure_ascii=False))
 
-            # Загружаем только нужные диапазоны для этих колонок
-            ranges = [f"'TEST_FILTER'!{chr(65 + int(col))}2:{chr(65 + int(col))}" for col in criteria_columns]
-            result = service.spreadsheets().values().batchGet(
-                spreadsheetId=table_id,
-                ranges=ranges
-            ).execute()
+        #     # 4️⃣ Сохраняем значения только для фильтруемых колонок
+        #     criteria_columns = list(existing_filter.get("criteria", {}).keys())
+        #     column_value_map = {}
 
-            # Обрабатываем результат
-            for idx, col in enumerate(criteria_columns):
-                column_values = result.get("valueRanges", [])[idx].get("values", [])
-                # Извлекаем уникальные значения, ограничиваем вывод
-                unique_values = {val[0] for val in column_values if val}
-                column_value_map[int(col)] = unique_values
-                #print(f"📊 Колонка {col}: {list(unique_values)[:5]}... (показано 5 из {len(unique_values)})")
+        #     # Загружаем только нужные диапазоны для этих колонок
+        #     ranges = [f"'TEST_FILTER'!{chr(65 + int(col))}2:{chr(65 + int(col))}" for col in criteria_columns]
+        #     result = service.spreadsheets().values().batchGet(
+        #         spreadsheetId=table_id,
+        #         ranges=ranges
+        #     ).execute()
 
-            # 5️⃣ Отключаем фильтры
-            service.spreadsheets().batchUpdate(
-                spreadsheetId=table_id,
-                body={"requests": [{"clearBasicFilter": {"sheetId": sheet_id}}]}
-            ).execute()
-            #print("🚨 Фильтры отключены.")
+        #     # Обрабатываем результат
+        #     for idx, col in enumerate(criteria_columns):
+        #         column_values = result.get("valueRanges", [])[idx].get("values", [])
+        #         # Извлекаем уникальные значения, ограничиваем вывод
+        #         unique_values = {val[0] for val in column_values if val}
+        #         column_value_map[int(col)] = unique_values
+        #         #print(f"📊 Колонка {col}: {list(unique_values)[:5]}... (показано 5 из {len(unique_values)})")
 
-            # 6️⃣ Добавляем новую строку
-            header_row = sheet.row_values(1)
-            new_row = ["" for _ in range(len(header_row))]
-            try:
-                virus_index = header_row.index("Вирусность")
-                engagement_index = header_row.index("Вовлеченность")
-                new_row[virus_index] = "NO DATA"
-                new_row[engagement_index] = "LOW ER"
-            except ValueError:
-                print("⚠️ Столбцы 'Вирусность' или 'Вовлеченность' не найдены.")
+        #     # 5️⃣ Отключаем фильтры
+        #     service.spreadsheets().batchUpdate(
+        #         spreadsheetId=table_id,
+        #         body={"requests": [{"clearBasicFilter": {"sheetId": sheet_id}}]}
+        #     ).execute()
+        #     #print("🚨 Фильтры отключены.")
 
-
-
-
-            sheet.insert_rows(rows_to_insert, row=3, value_input_option='USER_ENTERED')
-            print("✅ Новая строка добавлена.")
+        #     # 6️⃣ Добавляем новую строку
+        #     header_row = sheet.row_values(1)
+        #     new_row = ["" for _ in range(len(header_row))]
+        #     try:
+        #         virus_index = header_row.index("Вирусность")
+        #         engagement_index = header_row.index("Вовлеченность")
+        #         new_row[virus_index] = "NO DATA"
+        #         new_row[engagement_index] = "LOW ER"
+        #     except ValueError:
+        #         print("⚠️ Столбцы 'Вирусность' или 'Вовлеченность' не найдены.")
 
 
 
 
-            # 7️⃣ Обновляем диапазон фильтра
-            existing_filter["range"]["endRowIndex"] = sheet.row_count
+        #     sheet.insert_rows(rows_to_insert, row=3, value_input_option='USER_ENTERED')
+        #     print("✅ Новая строка добавлена.")
 
-            # 8️⃣ Восстанавливаем скрытые значения
-            if "criteria" in existing_filter:
-                for col_idx, criteria in existing_filter["criteria"].items():
-                    if "hiddenValues" in criteria:
-                        current_hidden = set(criteria["hiddenValues"])
-                        possible_values = column_value_map.get(int(col_idx), set())
-                        # Добавляем только те скрытые значения, которые существуют
-                        updated_hidden = current_hidden.intersection(possible_values)
-                        existing_filter["criteria"][col_idx]["hiddenValues"] = list(updated_hidden)
 
-            # 9️⃣ Восстанавливаем фильтры
-            service.spreadsheets().batchUpdate(
-                spreadsheetId=table_id,
-                body={"requests": [{"setBasicFilter": {"filter": existing_filter}}]}
-            ).execute()
-            print("🔄 Фильтры восстановлены с обновлённым диапазоном.")
-        except Exception as e:
-            print(f"Ошибка в процессе обработки в обновлении фильтров в ggl: {e}")
+
+
+        #     # 7️⃣ Обновляем диапазон фильтра
+        #     existing_filter["range"]["endRowIndex"] = sheet.row_count
+
+        #     # 8️⃣ Восстанавливаем скрытые значения
+        #     if "criteria" in existing_filter:
+        #         for col_idx, criteria in existing_filter["criteria"].items():
+        #             if "hiddenValues" in criteria:
+        #                 current_hidden = set(criteria["hiddenValues"])
+        #                 possible_values = column_value_map.get(int(col_idx), set())
+        #                 # Добавляем только те скрытые значения, которые существуют
+        #                 updated_hidden = current_hidden.intersection(possible_values)
+        #                 existing_filter["criteria"][col_idx]["hiddenValues"] = list(updated_hidden)
+
+        #     # 9️⃣ Восстанавливаем фильтры
+        #     service.spreadsheets().batchUpdate(
+        #         spreadsheetId=table_id,
+        #         body={"requests": [{"setBasicFilter": {"filter": existing_filter}}]}
+        #     ).execute()
+        #     print("🔄 Фильтры восстановлены с обновлённым диапазоном.")
+        # except Exception as e:
+        #     print(f"Ошибка в процессе обработки в обновлении фильтров в ggl: {e}")
 
             
         print(f"Все данные успешно добавлены в таблицу")
