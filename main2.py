@@ -427,7 +427,7 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
             print('No new reels')
             return [], []
         
-        sorted_data = ggl.check_duplicates(sorted_data, account, account['search_type'], 'INSTAGRAM')
+        sorted_data = ggl.check_duplicates(sorted_data, account, scraping_type, 'INSTAGRAM')
 
         # Создаём extracted_data
         extracted_data = apify.extracted_reels_data_maker(sorted_data)
