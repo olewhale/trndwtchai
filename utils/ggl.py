@@ -110,7 +110,7 @@ def check_duplicates(apify_data, account, scraping_type, list_name):
             print(f'Count elements after check_duplicates: {len(apify_data_noDuplicates)}')
             print("----------------")
             print("DUPLICATES")
-            print(duplicates)
+            print(json.dumps(list(duplicates), ensure_ascii=False, indent=4))
             print("----------------")
 
 
@@ -468,6 +468,18 @@ COLUMNS_CONFIG = {
         {
             "name": "duration",
             "value_func": lambda item, row_n, i2excel, name2idx: item.get("videoDuration", "")
+        },
+        {
+            "name": "virus_status",
+            "value_func": lambda item, row_n, i2excel, name2idx: (
+                f'=IF(COUNTIF({col_name(name2idx["userlink"])}:{col_name(name2idx["userlink"])}, INDIRECT("{col_name(name2idx["userlink"])}"&ROW()))<4, "NO DATA", IF(INDIRECT("{col_name(name2idx["virus_detector"])}"&ROW())<-0.1, "LOW", IF(INDIRECT("{col_name(name2idx["virus_detector"])}"&ROW())<= 0.1, "AVERAGE", IF(INDIRECT("{col_name(name2idx["virus_detector"])}"&ROW())<=0.4, "GOOD", IF(INDIRECT("{col_name(name2idx["virus_detector"])}"&ROW())<=0.8, "BEST", "VIRUS")))))'
+                )
+        },
+        {
+            "name": "engagement_status",
+            "value_func": lambda item, row_n, i2excel, name2idx: (
+                f'=IFS(INDIRECT("{col_name(name2idx["er_all"])}"&ROW())<=0.0688, "LOW ER", INDIRECT("{col_name(name2idx["er_all"])}"&ROW())<=0.1193, "AVERAGE ER", INDIRECT("{col_name(name2idx["er_all"])}"&ROW())<=0.1867, "BEST ER", TRUE, "VIRAL ER")'
+            )
         },
         {
             "name": "original_script",

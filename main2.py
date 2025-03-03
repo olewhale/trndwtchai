@@ -320,7 +320,7 @@ def save_partial_transcription(reel_data, save_path_transcript):
         with open(f'{save_path_transcript}', "w",
                   encoding="utf-8") as json_file:
             json.dump(output, json_file, ensure_ascii=False, indent=4)
-        print(f"Транскрипция сохранена")
+        #print(f"Транскрипция сохранена")
     except Exception as e:
         print(f"Ошибка при сохранении JSON: {e}")
 
