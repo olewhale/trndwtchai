@@ -232,11 +232,11 @@ def convert_video_to_audio(video_path):
         # Перенаправляем стандартный вывод и вывод ошибок в /dev/null (или в subprocess.PIPE для подавления)
         with open(os.devnull, 'w') as devnull:
             subprocess.run(command, check=True, stdout=devnull, stderr=devnull)
-        print(f"Конвертация выполнена: {audio_path}")
+        #print(f"Конвертация выполнена: {audio_path}")
 
         # Проверяем, что файл создан
         if os.path.exists(audio_path):
-            print(f"Аудиофайл успешно создан: {audio_path}")
+            #print(f"Аудиофайл успешно создан: {audio_path}")
         else:
             print(f"Ошибка: Аудиофайл {audio_path} не найден!")
             return None  # Если файл не найден
@@ -358,11 +358,11 @@ def task_01_scraping(account, days, scheme, range_days, scraping_type, date_time
       - Возвращает reelsData, extracted_data
     """
     
-    debug = 1
+    debug = 0
 
     if debug == 1:
         # DEBUG-режим (если есть свои заглушечные данные):
-        with open("db/28/saloapp_database_20250217_152652.json", "r", encoding="utf-8") as file:
+        with open("db/0/karolina_dataset_instagram-scraper_2025-02-25_22-09-25-245.json", "r", encoding="utf-8") as file:
             dataset_debug = json.load(file)
 
     # Генерируем пути для сохранения
@@ -722,6 +722,7 @@ def chain_get_shares(extracted_data, scraping_type, account, date_time_str):
 
 def process_data(account, days=3, links=[], scheme=0, range_days=None, scraping_type="instagram"):
     start_time = time.time()
+    print("____________________")
     print("process data started")
 
     now = datetime.now()

@@ -261,7 +261,7 @@ transcription = "{post_text}"
             '''
         }],
         temperature=0,
-        max_tokens=15000,
+        max_tokens=8000,
         response_format=OriginalScript)
     #research_paper = completion.choices[0].message.parsed
 

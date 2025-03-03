@@ -71,16 +71,28 @@ def schedule_app_run(target_time_str, option="all"):
 
 if __name__ == "__main__":
 
-    x = 0
+    x = 1
 
     if x == 0:
         print("Скрипт запущен")
+        #damir
+        #main2.app_run(option="one", account_id=16, range_days="1-14", scraping_type="instagram")
+        #main2.app_run(option="one", account_id=16, range_days="1-14", scraping_type="tiktok")
+        #test
+        #main2.app_run(option="one", account_id=30, range_days="0-500", scraping_type="instagram")
+        #main2.app_run(option="one", account_id=31, range_days="3-3", scraping_type="instagram")
+        #kumi
+        #main2.app_run(option="one", account_id=15, range_days="3-3", scraping_type="tiktok")
+        #saloapp
         main2.app_run(option="one", account_id=28, range_days="0-7", scraping_type="tiktok")
-        #main2.app_run(option="one", account_id=23, range_days="0-17", scraping_type="instagram")
+        #sternmeister
         #main2.app_run(option="one", account_id=23, range_days="1-8", scraping_type="instagram")
+        #main2.app_run(option="one", account_id=23, range_days="1-8", scraping_type="tiktok")
     elif x == 1:
         print("Скрипт запущен")
+        main2.app_run(option="one", account_id=15, range_days="3-3", scraping_type="tiktok")
         main2.app_run(option="pro", range_days="3-3", scraping_type="instagram")
+        #main2.app_run(option="pro", range_days="3-3", scraping_type="tiktok")
     elif x == 2:
         print("Скрипт запущен")
         target_time_str = "20:00"  # Укажите желаемое время запуска в формате ЧЧ:ММ
