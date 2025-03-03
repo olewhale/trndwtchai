@@ -237,6 +237,7 @@ def convert_video_to_audio(video_path):
         # Проверяем, что файл создан
         if os.path.exists(audio_path):
             #print(f"Аудиофайл успешно создан: {audio_path}")
+            pass
         else:
             print(f"Ошибка: Аудиофайл {audio_path} не найден!")
             return None  # Если файл не найден

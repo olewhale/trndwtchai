@@ -71,7 +71,7 @@ def schedule_app_run(target_time_str, option="all"):
 
 if __name__ == "__main__":
 
-    x = 1
+    x = 0
 
     if x == 0:
         print("Скрипт запущен")
